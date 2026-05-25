@@ -71,7 +71,7 @@ export default function Home() {
         setImportPreview({ type: 'tasks', data: data.tasks });
         alert(`✅ 識別到 ${data.tasks.length} 個工作項目！點擊「確認導入」來添加`);
       } else {
-        alert('❌ 無法識別內容，請檢查格式');
+        alert('❌ 無法識別內容，請檢查是否有日期和任務信息');
       }
     } catch (error) {
       console.error('導入失敗:', error);
@@ -107,7 +107,7 @@ export default function Home() {
           {importPreview.data.map((task, idx) => (
             <div key={idx} className={styles.previewItem}>
               <div><strong>{task.title}</strong></div>
-              <div>📅 {task.date} {task.recurring && `| 循環: ${task.recurring}`}</div>
+              <div>📅 {task.date} {task.recurring && task.recurring !== '不循環' && `| 循環: ${task.recurring}`}</div>
             </div>
           ))}
         </div>
@@ -140,10 +140,12 @@ export default function Home() {
 
       const data = await response.json();
       
-      if (data.events) {
+      if (data.events && data.events.length > 0) {
         setEvents([...events, ...data.events]);
         setInputText('');
         alert('✅ 會議已新增！');
+      } else {
+        alert('❌ 無法識別會議信息');
       }
     } catch (error) {
       console.error('解析失敗:', error);
@@ -478,17 +480,8 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <div className={styles.formatGuide}>
-                    <h4>📝 貼入格式說明</h4>
-                    <p>每行一個任務，用「｜」分隔，例：</p>
-                    <div className={styles.formatExample}>
-                      <code>下週三早上11:00｜林珍伊面試｜永寧廠</code><br/>
-                      <code>下週三下午15:00｜林宣晴面試｜永寧廠</code>
-                    </div>
-                    <p style={{fontSize: '12px', color: '#999'}}>或：人名｜日期時間｜任務</p>
-                  </div>
                   <textarea
-                    placeholder="貼入工作項目（按上面格式，每行一個）"
+                    placeholder="直接貼訊息、郵件、Notes 內容（AI 自動識別日期和任務）"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     className={styles.textarea}
@@ -498,7 +491,7 @@ export default function Home() {
                     disabled={loading}
                     className={styles.parseBtn}
                   >
-                    {loading ? '⏳ AI 識別中...' : '🤖 AI 快速識別'}
+                    {loading ? '⏳ AI 識別中...' : '🤖 AI 智能識別'}
                   </button>
                   {renderImportPreview()}
                 </>
