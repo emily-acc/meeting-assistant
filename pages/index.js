@@ -13,8 +13,8 @@ export default function Home() {
   const [taskInput, setTaskInput] = useState('');
   const [taskDate, setTaskDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
 
-  // Google 登入
   const handleGoogleLogin = () => {
     const mockUser = {
       name: '王可欣',
@@ -25,13 +25,11 @@ export default function Home() {
     localStorage.setItem('user', JSON.stringify(mockUser));
   };
 
-  // 登出
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
   };
 
-  // 載入本地數據
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
@@ -43,7 +41,6 @@ export default function Home() {
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
 
-  // 保存數據
   useEffect(() => {
     localStorage.setItem('events', JSON.stringify(events));
   }, [events]);
@@ -52,7 +49,95 @@ export default function Home() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // 解析會議
+  // 智能導入（批量）
+  const handleSmartImport = async () => {
+    if (!inputText.trim()) return;
+    
+    setLoading(true);
+    try {
+      const type = formType === 'batch' ? 'tasks' : 'meeting';
+      const response = await fetch('/api/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: inputText, 
+          apiKey: 'AIzaSyBzgBpDj-8zY-TAzhnNjcZFarf18XoP0mw',
+          type: type
+        })
+      });
+
+      const data = await response.json();
+      
+      if (formType === 'batch' && data.tasks && data.tasks.length > 0) {
+        setImportPreview({ type: 'tasks', data: data.tasks });
+        alert(`✅ 識別到 ${data.tasks.length} 個工作項目！點擊「確認導入」來添加`);
+      } else if (formType !== 'batch' && data.events && data.events.length > 0) {
+        setImportPreview({ type: 'events', data: data.events });
+        alert(`✅ 識別到 ${data.events.length} 個會議！點擊「確認導入」來添加`);
+      } else {
+        alert('❌ 無法識別內容，請檢查格式');
+      }
+    } catch (error) {
+      console.error('導入失敗:', error);
+      alert('❌ 導入失敗，請重試');
+    }
+    setLoading(false);
+  };
+
+  // 確認導入
+  const confirmImport = () => {
+    if (!importPreview) return;
+
+    if (importPreview.type === 'events') {
+      setEvents([...events, ...importPreview.data]);
+      alert(`✅ 已導入 ${importPreview.data.length} 個會議！`);
+    } else if (importPreview.type === 'tasks') {
+      const newTasks = importPreview.data.map(task => ({
+        ...task,
+        id: Date.now() + Math.random(),
+        completed: false
+      }));
+      setTasks([...tasks, ...newTasks]);
+      alert(`✅ 已導入 ${importPreview.data.length} 個工作項目！`);
+    }
+
+    setImportPreview(null);
+    setInputText('');
+  };
+
+  // 顯示導入預覽
+  const renderImportPreview = () => {
+    if (!importPreview) return null;
+
+    return (
+      <div className={styles.previewContainer}>
+        <h3>📋 導入預覽</h3>
+        <div className={styles.previewList}>
+          {importPreview.type === 'tasks' && importPreview.data.map((task, idx) => (
+            <div key={idx} className={styles.previewItem}>
+              <div><strong>{task.title}</strong></div>
+              <div>📅 {task.date} {task.recurring && `| 循環: ${task.recurring}`}</div>
+            </div>
+          ))}
+          {importPreview.type === 'events' && importPreview.data.map((event, idx) => (
+            <div key={idx} className={styles.previewItem}>
+              <div><strong>{event.title}</strong></div>
+              <div>⏰ {new Date(event.startTime).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
+        <div className={styles.previewActions}>
+          <button onClick={confirmImport} className={styles.confirmBtn}>
+            ✅ 確認導入
+          </button>
+          <button onClick={() => setImportPreview(null)} className={styles.cancelBtn}>
+            ❌ 取消
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const handleParseMeeting = async () => {
     if (!inputText.trim()) return;
     
@@ -61,7 +146,11 @@ export default function Home() {
       const response = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputText, apiKey: 'AIzaSyBzgBpDj-8zY-TAzhnNjcZFarf18XoP0mw' })
+        body: JSON.stringify({ 
+          text: inputText, 
+          apiKey: 'AIzaSyBzgBpDj-8zY-TAzhnNjcZFarf18XoP0mw',
+          type: 'meeting'
+        })
       });
 
       const data = await response.json();
@@ -78,7 +167,6 @@ export default function Home() {
     setLoading(false);
   };
 
-  // 新增工作項目
   const handleAddTask = () => {
     if (!taskInput.trim() || !taskDate) {
       alert('請填寫工作項目和日期');
@@ -89,7 +177,8 @@ export default function Home() {
       id: Date.now(),
       title: taskInput,
       date: taskDate,
-      completed: false
+      completed: false,
+      recurring: '不循環'
     };
 
     setTasks([...tasks, newTask]);
@@ -98,30 +187,25 @@ export default function Home() {
     alert('✅ 工作項目已新增！');
   };
 
-  // 刪除會議
   const deleteEvent = (index) => {
     setEvents(events.filter((_, i) => i !== index));
   };
 
-  // 刪除工作項目
   const deleteTask = (id) => {
     setTasks(tasks.filter(t => t.id !== id));
   };
 
-  // 切換工作項目完成狀態
   const toggleTask = (id) => {
     setTasks(tasks.map(t => 
       t.id === id ? { ...t, completed: !t.completed } : t
     ));
   };
 
-  // 複製到剪貼簿
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert('✅ 已複製');
   };
 
-  // 導出到 Google Calendar
   const exportToGoogleCalendar = (event) => {
     const startTime = new Date(event.startTime).toISOString().replace(/[-:]/g, '').split('.')[0];
     const endTime = new Date(new Date(event.startTime).getTime() + event.duration * 60000).toISOString().replace(/[-:]/g, '').split('.')[0];
@@ -131,22 +215,18 @@ export default function Home() {
     window.open(url, '_blank');
   };
 
-  // 加入會議
   const joinMeeting = (link) => {
     if (link) window.open(link, '_blank');
   };
 
-  // 取得月份的天數
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
-  // 取得月份的第一天是星期幾
   const getFirstDayOfMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
-  // 取得該日期的事件和任務
   const getDateEvents = (dateStr) => {
     return events.filter(e => new Date(e.startTime).toISOString().split('T')[0] === dateStr);
   };
@@ -155,18 +235,15 @@ export default function Home() {
     return tasks.filter(t => t.date === dateStr);
   };
 
-  // 生成月份日期陣列
   const getMonthDates = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDay = getFirstDayOfMonth(currentMonth);
     const dates = [];
 
-    // 前置空白
     for (let i = 0; i < firstDay; i++) {
       dates.push(null);
     }
 
-    // 本月日期
     for (let i = 1; i <= daysInMonth; i++) {
       dates.push(i);
     }
@@ -174,7 +251,6 @@ export default function Home() {
     return dates;
   };
 
-  // 渲染月視圖
   const renderMonthView = () => {
     const dates = getMonthDates();
     const monthStr = `${currentMonth.getFullYear()}年${currentMonth.getMonth() + 1}月`;
@@ -233,7 +309,6 @@ export default function Home() {
     );
   };
 
-  // 渲染會議看板
   const renderMeetingBoard = () => {
     const upcomingEvents = events.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
@@ -284,7 +359,6 @@ export default function Home() {
     );
   };
 
-  // 渲染工作項目看板
   const renderTaskBoard = () => {
     const sortedTasks = tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -306,7 +380,9 @@ export default function Home() {
                 />
                 <div className={styles.taskInfo}>
                   <div className={styles.taskTitle}>{task.title}</div>
-                  <div className={styles.taskDate}>📅 {task.date}</div>
+                  <div className={styles.taskDate}>
+                    📅 {task.date} {task.recurring && task.recurring !== '不循環' && `| 循環: ${task.recurring}`}
+                  </div>
                 </div>
                 <button onClick={() => deleteTask(task.id)} className={styles.deleteBtn}>
                   🗑
@@ -335,7 +411,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <h1>📅 會議行程助理</h1>
@@ -346,7 +421,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 標籤頁導航 */}
       <div className={styles.tabs}>
         <button 
           className={`${styles.tab} ${activeTab === 'month' ? styles.active : ''}`}
@@ -368,9 +442,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Main Content */}
       <div className={styles.main}>
-        {/* 新增表單 */}
         <div className={styles.formSection}>
           <button 
             className={styles.toggleBtn}
@@ -387,6 +459,12 @@ export default function Home() {
                   onClick={() => setFormType('meeting')}
                 >
                   會議
+                </button>
+                <button 
+                  className={`${styles.formTab} ${formType === 'batch' ? styles.active : ''}`}
+                  onClick={() => setFormType('batch')}
+                >
+                  批量導入
                 </button>
                 <button 
                   className={`${styles.formTab} ${formType === 'task' ? styles.active : ''}`}
@@ -411,6 +489,23 @@ export default function Home() {
                   >
                     {loading ? '⏳ 解析中...' : '🤖 AI 解析'}
                   </button>
+                </>
+              ) : formType === 'batch' ? (
+                <>
+                  <textarea
+                    placeholder="貼入工作項目文本（支援任意格式，AI 會自動識別日期、任務名稱、循環規則）"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    className={styles.textarea}
+                  />
+                  <button 
+                    onClick={handleSmartImport}
+                    disabled={loading}
+                    className={styles.parseBtn}
+                  >
+                    {loading ? '⏳ AI 識別中...' : '🤖 AI 智能識別'}
+                  </button>
+                  {renderImportPreview()}
                 </>
               ) : (
                 <>
@@ -439,7 +534,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* 內容區域 */}
         {activeTab === 'month' && renderMonthView()}
         {activeTab === 'meetings' && renderMeetingBoard()}
         {activeTab === 'tasks' && renderTaskBoard()}
