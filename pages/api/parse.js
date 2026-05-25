@@ -32,25 +32,66 @@ export default async function handler(req, res) {
 會議邀請文本：
 ${text}`;
     } else if (type === 'tasks') {
-      prompt = `【重要】今天日期是 ${new Date().toISOString().split('T')[0]}
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const todayDay = today.getDay();
+      
+      // 計算下週各日期
+      const nextMonday = new Date(today);
+      nextMonday.setDate(today.getDate() + (1 - todayDay + 7) % 7 || 7);
+      
+      const weekDates = {};
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(nextMonday);
+        d.setDate(d.getDate() + i);
+        const dayName = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+        weekDates[`下週${dayName}`] = d.toISOString().split('T')[0];
+      }
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const dayAfterTomorrow = new Date(today);
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+      const dayAfterTomorrowStr = dayAfterTomorrow.toISOString().split('T')[0];
+      
+      prompt = `【重要】今天是 ${todayStr}
 
-請解析以下工作項目文本。文本格式：每行一個任務，用「｜」分隔。
-
-支持的格式（任選一個）：
-- 日期時間｜任務名稱｜詳情
-- 任務名稱｜日期時間｜詳情
-- 人名｜日期時間｜任務
+你是一個聰明的工作項目識別助手。請從以下文本中提取所有工作項目、任務、面試等事項。
 
 識別規則：
-1. 相對日期轉換（例：下週三 → 實際日期）
-2. 時間格式：11:00、15:00 等
-3. 循環規則：每周、每月、每年（如果有提及）
+1. 任務關鍵詞：面試、會議、開會、截止、提交、報告、審核、確認、跟進、通知、完成、準備、整理、檢查、遞交、回覆、交付、核對 等
+2. 時間格式識別：
+   - 相對日期轉換（下週 XX）：
+     下週一 → ${weekDates['下週一']}
+     下週二 → ${weekDates['下週二']}
+     下週三 → ${weekDates['下週三']}
+     下週四 → ${weekDates['下週四']}
+     下週五 → ${weekDates['下週五']}
+     下週六 → ${weekDates['下週六']}
+     下週日 → ${weekDates['下週日']}
+   - 相對日期轉換（其他）：
+     明天 → ${tomorrowStr}
+     後天 → ${dayAfterTomorrowStr}
+   - 時間格式：11:00、下午3點、早上11:00、下午15:00、3:00 PM 等
+3. 優先級判斷：
+   - 關鍵詞「緊急」「趕快」「立即」→ 高優先級
+   - 有日期、有截止時間 → 中優先級
+   - 其他 → 低優先級
 
-以 JSON 格式回傳，只回傳 JSON，不要其他文字：
+提取原則：
+- 任務名稱簡潔（包含人名、地點等重要信息）
+- 如果只有時間沒有日期，假設是今天
+- 多個任務則每個提取一次
+- 如果提及每週、每月重複，標註循環規則
+
+以 JSON 格式回傳，只回傳 JSON，不要其他文字。
+
 {
   "tasks": [
     {
-      "title": "任務名稱（重點、簡潔）",
+      "title": "簡潔的任務名稱（包含關鍵人名/地點）",
       "date": "YYYY-MM-DD",
       "recurring": "不循環 / 每周 / 每月 / 每年",
       "priority": "高 / 中 / 低"
@@ -58,7 +99,7 @@ ${text}`;
   ]
 }
 
-工作項目文本：
+文本：
 ${text}`;
     }
 
