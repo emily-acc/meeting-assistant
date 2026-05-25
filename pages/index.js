@@ -478,8 +478,17 @@ export default function Home() {
                 </>
               ) : (
                 <>
+                  <div className={styles.formatGuide}>
+                    <h4>📝 貼入格式說明</h4>
+                    <p>每行一個任務，用「｜」分隔，例：</p>
+                    <div className={styles.formatExample}>
+                      <code>下週三早上11:00｜林珍伊面試｜永寧廠</code><br/>
+                      <code>下週三下午15:00｜林宣晴面試｜永寧廠</code>
+                    </div>
+                    <p style={{fontSize: '12px', color: '#999'}}>或：人名｜日期時間｜任務</p>
+                  </div>
                   <textarea
-                    placeholder="貼入工作項目（Notes/郵件內容，AI 自動識別日期和任務）"
+                    placeholder="貼入工作項目（按上面格式，每行一個）"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     className={styles.textarea}
@@ -489,7 +498,7 @@ export default function Home() {
                     disabled={loading}
                     className={styles.parseBtn}
                   >
-                    {loading ? '⏳ AI 識別中...' : '🤖 AI 智能識別'}
+                    {loading ? '⏳ AI 識別中...' : '🤖 AI 快速識別'}
                   </button>
                   {renderImportPreview()}
                 </>
