@@ -44,6 +44,38 @@
   background: rgba(255,255,255,0.3);
 }
 
+/* 標籤頁導航 */
+.tabs {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tab {
+  flex: 1;
+  padding: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab:hover {
+  background: #f9f9f9;
+  color: #1C2B4A;
+}
+
+.tab.active {
+  color: #1C2B4A;
+  border-bottom-color: #1C2B4A;
+}
+
 .main {
   max-width: 1200px;
   margin: 0 auto;
@@ -59,294 +91,4 @@
   background: #1C2B4A;
   color: white;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.toggleBtn:hover {
-  background: #2a3f5f;
-}
-
-.form {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  resize: vertical;
-  box-sizing: border-box;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #1C2B4A;
-  box-shadow: 0 0 0 3px rgba(28, 43, 74, 0.1);
-}
-
-.parseBtn {
-  margin-top: 12px;
-  padding: 12px 24px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.parseBtn:hover:not(:disabled) {
-  background: #45a049;
-}
-
-.parseBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.weekView {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.weekControls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 10px;
-}
-
-.weekControls button {
-  padding: 8px 16px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.weekControls button:hover {
-  background: #e0e0e0;
-}
-
-.weekLabel {
-  font-weight: 600;
-  color: #1C2B4A;
-  min-width: 200px;
-  text-align: center;
-}
-
-.days {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-}
-
-.day {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 12px;
-  min-height: 250px;
-}
-
-.dayHeader {
-  font-weight: 600;
-  color: #1C2B4A;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #1C2B4A;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.dayEvents {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.noEvents {
-  color: #999;
-  font-size: 12px;
-  text-align: center;
-  padding: 20px 0;
-}
-
-.eventCard {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px;
-  font-size: 12px;
-}
-
-.eventTitle {
-  font-weight: 600;
-  color: #1C2B4A;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.eventTime {
-  color: #666;
-  font-size: 11px;
-  margin-bottom: 6px;
-}
-
-.eventButtons {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 4px 8px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 11px;
-  flex: 1;
-  min-width: 24px;
-}
-
-.btn:hover {
-  background: #e0e0e0;
-}
-
-.deleteBtn {
-  background: #ffebee;
-  color: #c62828;
-  border-color: #c62828;
-}
-
-.deleteBtn:hover {
-  background: #ffcdd2;
-}
-
-.allEvents {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.allEvents h2 {
-  color: #1C2B4A;
-  margin-top: 0;
-  font-size: 20px;
-}
-
-.eventsList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.listItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-}
-
-.listInfo {
-  flex: 1;
-}
-
-.listInfo strong {
-  display: block;
-  color: #1C2B4A;
-  margin-bottom: 4px;
-}
-
-.listInfo div {
-  font-size: 12px;
-  color: #666;
-}
-
-.listActions {
-  display: flex;
-  gap: 8px;
-}
-
-/* 登入頁面 */
-.loginContainer {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #1C2B4A 0%, #2a3f5f 100%);
-}
-
-.loginBox {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  max-width: 400px;
-}
-
-.loginBox h1 {
-  color: #1C2B4A;
-  margin-bottom: 10px;
-  font-size: 32px;
-}
-
-.loginBox p {
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.googleButton {
-  padding: 14px 28px;
-  background: #4285F4;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  width: 100%;
-}
-
-.googleButton:hover {
-  background: #357ae8;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .days {
-    grid-template-columns: 1fr;
-  }
-  
-  .weekControls {
-    flex-direction: column;
-  }
-  
-  .weekLabel {
-    width: 100%;
-  }
-}
+  border-radius:​​​​​​​​​​​​​​​​
