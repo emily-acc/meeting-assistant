@@ -480,6 +480,19 @@ export default function Home() {
                 </>
               ) : (
                 <>
+                  <div className={styles.tipBox}>
+                    <div className={styles.tipTitle}>💡 提示（非強制）</div>
+                    <div className={styles.tipContent}>
+                      <p>最佳做法包含以下信息：</p>
+                      <div className={styles.tipExample}>
+                        • 人名：林珍伊、林宣晴<br/>
+                        • 日期：下週三、明天、5/29<br/>
+                        • 時間：早上11:00、下午15:00<br/>
+                        • 任務：面試、會議、提供資料
+                      </div>
+                      <p style={{fontSize: '12px', margin: '8px 0 0 0', color: '#666'}}>✅ 但也可以隨意貼入任何格式</p>
+                    </div>
+                  </div>
                   <textarea
                     placeholder="直接貼訊息、郵件、Notes 內容（AI 自動識別日期和任務）"
                     value={inputText}
