@@ -1,3 +1,31 @@
+function getNextWednesday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const daysAhead = (3 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().split('T')[0];
+}
+
+function getNextFriday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const daysAhead = (5 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().split('T')[0];
+}
+
+function getTomorrow(date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+}
+
+function getDayAfterTomorrow(date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + 2);
+  return d.toISOString().split('T')[0];
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -34,64 +62,44 @@ ${text}`;
     } else if (type === 'tasks') {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
-      const todayDay = today.getDay();
+      const tomorrow = getTomorrow(today);
+      const dayAfterTomorrow = getDayAfterTomorrow(today);
+      const nextWednesday = getNextWednesday(today);
+      const nextFriday = getNextFriday(today);
       
-      // 計算下週各日期
-      const nextMonday = new Date(today);
-      nextMonday.setDate(today.getDate() + (1 - todayDay + 7) % 7 || 7);
-      
-      const weekDates = {};
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(nextMonday);
-        d.setDate(d.getDate() + i);
-        const dayName = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
-        weekDates[`下週${dayName}`] = d.toISOString().split('T')[0];
-      }
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
-      
-      const dayAfterTomorrow = new Date(today);
-      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-      const dayAfterTomorrowStr = dayAfterTomorrow.toISOString().split('T')[0];
-      
-      prompt = `【重要】今天是 ${todayStr}
+      prompt = `你是一個任務識別助手。從文本中提取所有工作任務、面試、會議等事項。
 
-你是一個聰明的工作項目識別助手。請從以下文本中提取所有工作項目、任務、面試等事項。
+【必須的識別規則】
+1. 時間詞：早上、下午、11:00、15:00、上午10點、下午3點 等
+2. 日期詞：下週一/二/三/四/五/六、明天、後天、下個月、這週五 等  
+3. 人名：林珍伊、林宣晴、王小明 等
+4. 任務詞：面試、會議、開會、截止、提交、報告、審核、通知、確認、提供、跟進、完成 等
+5. 地點：永寧廠、台北辦公室、線上 等
 
-識別規則：
-1. 任務關鍵詞：面試、會議、開會、截止、提交、報告、審核、確認、跟進、通知、完成、準備、整理、檢查、遞交、回覆、交付、核對 等
-2. 時間格式識別：
-   - 相對日期轉換（下週 XX）：
-     下週一 → ${weekDates['下週一']}
-     下週二 → ${weekDates['下週二']}
-     下週三 → ${weekDates['下週三']}
-     下週四 → ${weekDates['下週四']}
-     下週五 → ${weekDates['下週五']}
-     下週六 → ${weekDates['下週六']}
-     下週日 → ${weekDates['下週日']}
-   - 相對日期轉換（其他）：
-     明天 → ${tomorrowStr}
-     後天 → ${dayAfterTomorrowStr}
-   - 時間格式：11:00、下午3點、早上11:00、下午15:00、3:00 PM 等
-3. 優先級判斷：
-   - 關鍵詞「緊急」「趕快」「立即」→ 高優先級
-   - 有日期、有截止時間 → 中優先級
-   - 其他 → 低優先級
+【日期轉換表】
+- 今天：${todayStr}
+- 明天：${tomorrow}
+- 後天：${dayAfterTomorrow}
+- 下週三：${nextWednesday}
+- 下週五：${nextFriday}
 
-提取原則：
-- 任務名稱簡潔（包含人名、地點等重要信息）
-- 如果只有時間沒有日期，假設是今天
-- 多個任務則每個提取一次
-- 如果提及每週、每月重複，標註循環規則
+【提取原則】
+- 每一個任務獨立提取
+- 任務名稱要簡潔（包含人名、地點等關鍵信息）
+- 時間和日期必須一起識別
+- 如果只有時間沒日期，用今天日期
+- 優先級判斷：
+  * 包含「緊急」「立即」「趕快」 → 高
+  * 有具體日期和時間 → 中
+  * 其他 → 低
 
-以 JSON 格式回傳，只回傳 JSON，不要其他文字。
+【輸出規則】
+只輸出 JSON，不要其他文字。如果找不到任務，輸出 {"tasks": []}
 
 {
   "tasks": [
     {
-      "title": "簡潔的任務名稱（包含關鍵人名/地點）",
+      "title": "任務名稱（包含人名/地點）",
       "date": "YYYY-MM-DD",
       "recurring": "不循環 / 每周 / 每月 / 每年",
       "priority": "高 / 中 / 低"
@@ -99,7 +107,7 @@ ${text}`;
   ]
 }
 
-文本：
+【文本內容】
 ${text}`;
     }
 
@@ -125,20 +133,25 @@ ${text}`;
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        
-        if (type === 'meeting' && parsed.events) {
-          result.events = parsed.events.map(event => ({
-            ...event,
-            startTime: new Date(event.startTime).toISOString(),
-            duration: event.duration || 60
-          }));
-        } else if (type === 'tasks' && parsed.tasks) {
-          result.tasks = parsed.tasks.filter(task => task.title && task.date);
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          
+          if (type === 'meeting' && parsed.events) {
+            result.events = parsed.events.map(event => ({
+              ...event,
+              startTime: new Date(event.startTime).toISOString(),
+              duration: event.duration || 60
+            }));
+          } else if (type === 'tasks' && parsed.tasks) {
+            result.tasks = parsed.tasks.filter(task => task.title && task.date);
+          }
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          result = { events: [], tasks: [] };
         }
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
+      console.error('Regex/parse error:', parseError);
     }
 
     res.status(200).json(result);
