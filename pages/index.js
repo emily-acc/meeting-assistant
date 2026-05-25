@@ -49,31 +49,27 @@ export default function Home() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // 智能導入（批量）
-  const handleSmartImport = async () => {
+  // 智能導入（工作項目 AI 識別）
+  const handleSmartTaskImport = async () => {
     if (!inputText.trim()) return;
     
     setLoading(true);
     try {
-      const type = formType === 'batch' ? 'tasks' : 'meeting';
       const response = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           text: inputText, 
           apiKey: 'AIzaSyBzgBpDj-8zY-TAzhnNjcZFarf18XoP0mw',
-          type: type
+          type: 'tasks'
         })
       });
 
       const data = await response.json();
       
-      if (formType === 'batch' && data.tasks && data.tasks.length > 0) {
+      if (data.tasks && data.tasks.length > 0) {
         setImportPreview({ type: 'tasks', data: data.tasks });
         alert(`✅ 識別到 ${data.tasks.length} 個工作項目！點擊「確認導入」來添加`);
-      } else if (formType !== 'batch' && data.events && data.events.length > 0) {
-        setImportPreview({ type: 'events', data: data.events });
-        alert(`✅ 識別到 ${data.events.length} 個會議！點擊「確認導入」來添加`);
       } else {
         alert('❌ 無法識別內容，請檢查格式');
       }
@@ -84,22 +80,17 @@ export default function Home() {
     setLoading(false);
   };
 
-  // 確認導入
-  const confirmImport = () => {
-    if (!importPreview) return;
+  // 確認導入工作項目
+  const confirmTaskImport = () => {
+    if (!importPreview || importPreview.type !== 'tasks') return;
 
-    if (importPreview.type === 'events') {
-      setEvents([...events, ...importPreview.data]);
-      alert(`✅ 已導入 ${importPreview.data.length} 個會議！`);
-    } else if (importPreview.type === 'tasks') {
-      const newTasks = importPreview.data.map(task => ({
-        ...task,
-        id: Date.now() + Math.random(),
-        completed: false
-      }));
-      setTasks([...tasks, ...newTasks]);
-      alert(`✅ 已導入 ${importPreview.data.length} 個工作項目！`);
-    }
+    const newTasks = importPreview.data.map(task => ({
+      ...task,
+      id: Date.now() + Math.random(),
+      completed: false
+    }));
+    setTasks([...tasks, ...newTasks]);
+    alert(`✅ 已導入 ${importPreview.data.length} 個工作項目！`);
 
     setImportPreview(null);
     setInputText('');
@@ -107,27 +98,21 @@ export default function Home() {
 
   // 顯示導入預覽
   const renderImportPreview = () => {
-    if (!importPreview) return null;
+    if (!importPreview || importPreview.type !== 'tasks') return null;
 
     return (
       <div className={styles.previewContainer}>
         <h3>📋 導入預覽</h3>
         <div className={styles.previewList}>
-          {importPreview.type === 'tasks' && importPreview.data.map((task, idx) => (
+          {importPreview.data.map((task, idx) => (
             <div key={idx} className={styles.previewItem}>
               <div><strong>{task.title}</strong></div>
               <div>📅 {task.date} {task.recurring && `| 循環: ${task.recurring}`}</div>
             </div>
           ))}
-          {importPreview.type === 'events' && importPreview.data.map((event, idx) => (
-            <div key={idx} className={styles.previewItem}>
-              <div><strong>{event.title}</strong></div>
-              <div>⏰ {new Date(event.startTime).toLocaleString()}</div>
-            </div>
-          ))}
         </div>
         <div className={styles.previewActions}>
-          <button onClick={confirmImport} className={styles.confirmBtn}>
+          <button onClick={confirmTaskImport} className={styles.confirmBtn}>
             ✅ 確認導入
           </button>
           <button onClick={() => setImportPreview(null)} className={styles.cancelBtn}>
@@ -227,6 +212,12 @@ export default function Home() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  const isToday = (dateStr) => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return dateStr === todayStr;
+  };
+
   const getDateEvents = (dateStr) => {
     return events.filter(e => new Date(e.startTime).toISOString().split('T')[0] === dateStr);
   };
@@ -284,9 +275,10 @@ export default function Home() {
               const dateEvents = getDateEvents(dateStr);
               const dateTasks = getDateTasks(dateStr);
               const hasContent = dateEvents.length > 0 || dateTasks.length > 0;
+              const todayFlag = isToday(dateStr);
 
               return (
-                <div key={day} className={`${styles.calendarDay} ${hasContent ? styles.hasContent : ''}`}>
+                <div key={day} className={`${styles.calendarDay} ${hasContent ? styles.hasContent : ''} ${todayFlag ? styles.today : ''}`}>
                   <div className={styles.dayNumber}>{day}</div>
                   <div className={styles.dayContent}>
                     {dateTasks.map(task => (
@@ -461,12 +453,6 @@ export default function Home() {
                   會議
                 </button>
                 <button 
-                  className={`${styles.formTab} ${formType === 'batch' ? styles.active : ''}`}
-                  onClick={() => setFormType('batch')}
-                >
-                  批量導入
-                </button>
-                <button 
                   className={`${styles.formTab} ${formType === 'task' ? styles.active : ''}`}
                   onClick={() => setFormType('task')}
                 >
@@ -490,44 +476,22 @@ export default function Home() {
                     {loading ? '⏳ 解析中...' : '🤖 AI 解析'}
                   </button>
                 </>
-              ) : formType === 'batch' ? (
+              ) : (
                 <>
                   <textarea
-                    placeholder="貼入工作項目文本（支援任意格式，AI 會自動識別日期、任務名稱、循環規則）"
+                    placeholder="貼入工作項目（Notes/郵件內容，AI 自動識別日期和任務）"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     className={styles.textarea}
                   />
                   <button 
-                    onClick={handleSmartImport}
+                    onClick={handleSmartTaskImport}
                     disabled={loading}
                     className={styles.parseBtn}
                   >
                     {loading ? '⏳ AI 識別中...' : '🤖 AI 智能識別'}
                   </button>
                   {renderImportPreview()}
-                </>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    placeholder="工作項目名稱"
-                    value={taskInput}
-                    onChange={(e) => setTaskInput(e.target.value)}
-                    className={styles.textarea}
-                  />
-                  <input
-                    type="date"
-                    value={taskDate}
-                    onChange={(e) => setTaskDate(e.target.value)}
-                    className={styles.textarea}
-                  />
-                  <button 
-                    onClick={handleAddTask}
-                    className={styles.parseBtn}
-                  >
-                    ✅ 新增工作項目
-                  </button>
                 </>
               )}
             </div>
