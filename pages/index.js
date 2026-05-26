@@ -45,6 +45,7 @@ export default function Home() {
     const meeting = {
       id: Date.now(),
       title: '',
+      subject: '',
       startTime: '',
       endTime: '',
       date: new Date().toISOString().split('T')[0],
@@ -55,27 +56,35 @@ export default function Home() {
       hostPassword: '',
       location: '',
       phone: '',
+      duration: '',
       type: 'meeting',
       notes: text
     };
 
-    // 判斷類型（面試 → meeting，不是 task）
+    // 判斷類型（面試 → meeting，財稅報等 → task）
     const isInterview = text.includes('面試') || text.includes('面试');
     const isTask = (text.includes('財稅報') || text.includes('审核') || text.includes('提交') || text.includes('填寫')) && !isInterview;
     
     if (isTask) {
       meeting.type = 'task';
     } else {
-      meeting.type = 'meeting'; // 面試歸為會議
+      meeting.type = 'meeting';
+    }
+
+    // 提取主題（優先級最高）
+    const subjectMatch = text.match(/主題[：:]\s*(.+?)[\n$]|主题[：:]\s*(.+?)[\n$]/);
+    if (subjectMatch) {
+      meeting.subject = subjectMatch[1] || subjectMatch[2];
+      meeting.title = meeting.subject; // 標題同步為主題
     }
 
     // 提取標題
     const titleMatch = text.match(/【(.+?)】|標題[：:]\s*(.+?)[\n$]|^([^【\n：:]{2,40}?)[\n【時間日期]/m);
-    if (titleMatch) {
+    if (titleMatch && !meeting.subject) {
       meeting.title = titleMatch[1] || titleMatch[2] || titleMatch[3];
     }
 
-    // 如果沒有標題，根據內容推斷
+    // 如果還沒有標題，根據內容推斷
     if (!meeting.title) {
       if (isInterview) {
         const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
@@ -103,42 +112,29 @@ export default function Home() {
     }
 
     // 提取時間（支持多種格式）
-    const ampmMatch = text.match(/(早上|上午|中午|下午|晚上)[\s]?(\d{1,2})[點:：](\d{0,2})|時間[：:]\s*(\d{1,2})[點:：](\d{0,2})/);
-    if (ampmMatch) {
-      let hour = parseInt(ampmMatch[2] || ampmMatch[4]);
-      const min = ampmMatch[3] || ampmMatch[5] || '00';
-      const period = ampmMatch[1];
-      
-      if (period === '下午' || period === '晚上') {
-        if (hour < 12) hour += 12;
-      }
-      if (period === '早上' || period === '上午') {
-        if (hour === 12) hour = 0;
-      }
-      
-      meeting.startTime = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-    } else {
-      const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
-      if (timeMatch) {
-        meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
-      }
+    const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
+    }
+
+    // 提取時長
+    const durationMatch = text.match(/時長[：:]\s*(.+?)[\n$]|时长[：:]\s*(.+?)[\n$]/);
+    if (durationMatch) {
+      meeting.duration = durationMatch[1] || durationMatch[2];
     }
 
     // 提取日期（支持多種格式）
     const dateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})[\/年](\d{1,2})/);
     if (dateMatch) {
       if (dateMatch[1]) {
-        // YYYY年MM月DD日 格式
         meeting.date = `${dateMatch[1]}-${String(dateMatch[2]).padStart(2, '0')}-${String(dateMatch[3]).padStart(2, '0')}`;
       } else if (dateMatch[4] && dateMatch[5]) {
-        // M/D 或 MM/DD 格式
         const month = String(dateMatch[4]).padStart(2, '0');
         const day = String(dateMatch[5]).padStart(2, '0');
         const year = new Date().getFullYear();
         meeting.date = `${year}-${month}-${day}`;
       }
     } else {
-      // 相對日期
       const relativeMatch = text.match(/下週([一二三四五六日])|明天|後天|今天/);
       if (relativeMatch) {
         const today = new Date();
@@ -160,9 +156,9 @@ export default function Home() {
     }
 
     // 提取平台
-    if (text.includes('Webex')) meeting.platform = 'Webex';
-    else if (text.includes('Teams')) meeting.platform = 'Teams';
-    else if (text.includes('Zoom')) meeting.platform = 'Zoom';
+    if (text.includes('Webex') || text.includes('webex')) meeting.platform = 'Webex';
+    else if (text.includes('Teams') || text.includes('teams')) meeting.platform = 'Teams';
+    else if (text.includes('Zoom') || text.includes('zoom')) meeting.platform = 'Zoom';
     else if (text.includes('Google Meet')) meeting.platform = 'Google Meet';
     else if (text.includes('104')) meeting.platform = '104';
     else if (isInterview) meeting.platform = '面試';
@@ -172,6 +168,12 @@ export default function Home() {
     const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
     if (linkMatch) meeting.link = linkMatch[1];
 
+    // 提取會議號碼/號码
+    const numberMatch = text.match(/號碼[：:]\s*(\d+)|号码[：:]\s*(\d+)/);
+    if (numberMatch) {
+      meeting.password = numberMatch[1] || numberMatch[2];
+    }
+
     // 提取組織者/主持人（包含部門和電話）
     const orgMatch = text.match(/主持人[：:]\s*([^\n]+)|主席[：:]\s*([^\n]+)|寄件人[：:]\s*([^\n]+)|([A-Za-z\s\.]+\s[\u4e00-\u9fff]{2,4})/);
     if (orgMatch) {
@@ -179,14 +181,14 @@ export default function Home() {
     }
 
     // 提取電話號碼
-    const phoneMatch = text.match(/O\s*\+(\d{3}\.\d{1,2}\.\d{4,5}\.\d{4,5})|Ext\.\d+|電話[：:]\s*(\+[\d\.\-\s]+)/);
+    const phoneMatch = text.match(/O\s*\+(\d{3}\.\d{1,2}\.\d{4,5}\.\d{4,5})|Ext\.\d+|電話[：:]\s*(\+[\d\.\-\s]+)|集團內分機[：:]\s*(\(.+?\)[\d]+)/);
     if (phoneMatch) {
-      meeting.phone = phoneMatch[1] || phoneMatch[2] || '';
+      meeting.phone = phoneMatch[1] || phoneMatch[2] || phoneMatch[3] || '';
     }
 
     // 提取會議密碼
-    const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|會議號碼[：:]\s*(\d+)|密码[：:]\s*([^\n\s]+)/);
-    if (pwMatch) meeting.password = pwMatch[1] || pwMatch[2] || pwMatch[3];
+    const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|密码[：:]\s*([^\n\s]+)/);
+    if (pwMatch) meeting.password = pwMatch[1] || pwMatch[2];
 
     // 提取主持人密碼
     const hostPwMatch = text.match(/主持人密碼[：:]\s*([^\n\s]+)|主持人號碼[：:]\s*([^\n\s]+)|主持人[密码][：:]\s*([^\n\s]+)/);
@@ -488,6 +490,14 @@ function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, 
             placeholder="標題"
             className={styles.editInput}
           />
+          <select 
+            value={editForm.type} 
+            onChange={(e) => onEditChange('type', e.target.value)}
+            className={styles.editSelect}
+          >
+            <option value="meeting">會議</option>
+            <option value="task">工作項目</option>
+          </select>
           <input 
             type="text" 
             value={editForm.startTime} 
@@ -526,7 +536,9 @@ function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, 
       </div>
 
       <div className={styles.cardInfo}>
+        {meeting.subject && <div className={styles.detail}>📌 {meeting.subject}</div>}
         {meeting.date && <div className={styles.detail}>📅 {meeting.date}</div>}
+        {meeting.duration && <div className={styles.detail}>⏱️ {meeting.duration}</div>}
         {meeting.platform && <div className={styles.badge}>{meeting.platform}</div>}
         {meeting.location && <div className={styles.detail}>📍 {meeting.location}</div>}
         {meeting.organizer && <div className={styles.detail}>👤 {meeting.organizer}</div>}
@@ -563,6 +575,24 @@ function EditModal({ meeting, onChange, onSave, onCancel }) {
             className={styles.formInput}
           />
           
+          <label>類型</label>
+          <select 
+            value={meeting.type} 
+            onChange={(e) => onChange('type', e.target.value)}
+            className={styles.formSelect}
+          >
+            <option value="meeting">會議</option>
+            <option value="task">工作項目</option>
+          </select>
+          
+          <label>主題</label>
+          <input 
+            type="text" 
+            value={meeting.subject} 
+            onChange={(e) => onChange('subject', e.target.value)}
+            className={styles.formInput}
+          />
+          
           <label>時間</label>
           <input 
             type="text" 
@@ -578,6 +608,14 @@ function EditModal({ meeting, onChange, onSave, onCancel }) {
             value={meeting.date} 
             onChange={(e) => onChange('date', e.target.value)}
             placeholder="YYYY-MM-DD"
+            className={styles.formInput}
+          />
+          
+          <label>時長</label>
+          <input 
+            type="text" 
+            value={meeting.duration} 
+            onChange={(e) => onChange('duration', e.target.value)}
             className={styles.formInput}
           />
           
