@@ -10,7 +10,10 @@ export default function Home() {
   const [inputText, setInputText] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [viewType, setViewType] = useState('all'); // 'all', 'meeting', 'task'
+  const [viewType, setViewType] = useState('all');
+  
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   // 登入
   const handleLogin = () => {
@@ -49,6 +52,7 @@ export default function Home() {
       link: '',
       organizer: '',
       password: '',
+      hostPassword: '',
       location: '',
       type: 'meeting',
       notes: text
@@ -77,7 +81,7 @@ export default function Home() {
       meeting.location = locationMatch[1] ? locationMatch[1] + locationMatch[2] : locationMatch[2];
     }
 
-    // 提取時間（早上/下午格式）
+    // 提取時間
     const ampmMatch = text.match(/(早上|上午|中午|下午|晚上)[\s]?(\d{1,2})[點:：](\d{0,2})|時間[：:]\s*(\d{1,2})[點:：](\d{0,2})/);
     if (ampmMatch) {
       let hour = parseInt(ampmMatch[2] || ampmMatch[4]);
@@ -93,14 +97,13 @@ export default function Home() {
       
       meeting.startTime = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
     } else {
-      // 直接提取時間 HH:MM
       const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
       if (timeMatch) {
         meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
       }
     }
 
-    // 提取日期（明確日期格式）
+    // 提取日期
     const explicitDateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})\/(\d{1,2})/);
     if (explicitDateMatch) {
       if (explicitDateMatch[1]) {
@@ -112,7 +115,6 @@ export default function Home() {
         meeting.date = `${year}-${month}-${day}`;
       }
     } else {
-      // 相對日期格式
       const relativeMatch = text.match(/下週([一二三四五六日])|明天|後天|今天/);
       if (relativeMatch) {
         const today = new Date();
@@ -134,9 +136,9 @@ export default function Home() {
     }
 
     // 提取平台
-    if (text.includes('Webex') || text.includes('webex')) meeting.platform = 'Webex';
-    else if (text.includes('Teams') || text.includes('teams')) meeting.platform = 'Teams';
-    else if (text.includes('Zoom') || text.includes('zoom')) meeting.platform = 'Zoom';
+    if (text.includes('Webex')) meeting.platform = 'Webex';
+    else if (text.includes('Teams')) meeting.platform = 'Teams';
+    else if (text.includes('Zoom')) meeting.platform = 'Zoom';
     else if (text.includes('Google Meet')) meeting.platform = 'Google Meet';
     else if (text.includes('104')) meeting.platform = '104';
     else if (meeting.type === 'task') meeting.platform = '面試';
@@ -145,13 +147,17 @@ export default function Home() {
     const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
     if (linkMatch) meeting.link = linkMatch[1];
 
-    // 提取組織者/主持人
-    const orgMatch = text.match(/主持人[：:]\s*(\S+)|主席[：:]\s*(\S+)|寄件人[：:]\s*(\S+)|召集人[：:]\s*(\S+)/);
-    if (orgMatch) meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3] || orgMatch[4];
+    // 提取組織者
+    const orgMatch = text.match(/主持人[：:]\s*(\S+)|主席[：:]\s*(\S+)|寄件人[：:]\s*(\S+)/);
+    if (orgMatch) meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3];
 
-    // 提取密碼
+    // 提取會議密碼
     const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|會議號碼[：:]\s*(\d+)|密码[：:]\s*([^\n\s]+)/);
     if (pwMatch) meeting.password = pwMatch[1] || pwMatch[2] || pwMatch[3];
+
+    // 提取主持人密碼
+    const hostPwMatch = text.match(/主持人密碼[：:]\s*([^\n\s]+)|主持人號碼[：:]\s*([^\n\s]+)|主持人[密码][：:]\s*([^\n\s]+)/);
+    if (hostPwMatch) meeting.hostPassword = hostPwMatch[1] || hostPwMatch[2] || hostPwMatch[3];
 
     return meeting;
   };
@@ -171,6 +177,26 @@ export default function Home() {
     setMeetings([...meetings, meeting]);
     setInputText('');
     alert(`✅ 已添加：${meeting.title}`);
+  };
+
+  // 編輯會議
+  const handleEditStart = (meeting) => {
+    setEditingId(meeting.id);
+    setEditForm({ ...meeting });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm({ ...editForm, [field]: value });
+  };
+
+  const handleEditSave = () => {
+    setMeetings(meetings.map(m => m.id === editingId ? editForm : m));
+    setEditingId(null);
+    alert('✅ 已更新');
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
   };
 
   // 刪除會議
@@ -301,7 +327,6 @@ export default function Home() {
       <div className={styles.contentSection}>
         {viewType === 'all' && (
           <div className={styles.allViewContainer}>
-            {/* 左側：月曆 */}
             <div className={styles.calendarPanel}>
               <div className={styles.monthNav}>
                 <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>⬅</button>
@@ -334,7 +359,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 右側：行程列表 */}
             <div className={styles.listPanel}>
               <h2>📌 {selectedDate} ({getSelectedDateMeetings().length})</h2>
               {getSelectedDateMeetings().length === 0 ? (
@@ -342,7 +366,18 @@ export default function Home() {
               ) : (
                 <div className={styles.meetingsList}>
                   {getSelectedDateMeetings().map(m => (
-                    <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
+                    <MeetingCard 
+                      key={m.id} 
+                      meeting={m}
+                      isEditing={editingId === m.id}
+                      editForm={editForm}
+                      onEditStart={handleEditStart}
+                      onEditChange={handleEditChange}
+                      onEditSave={handleEditSave}
+                      onEditCancel={handleEditCancel}
+                      onDelete={handleDeleteMeeting}
+                      onCopy={copyToClipboard}
+                    />
                   ))}
                 </div>
               )}
@@ -358,7 +393,18 @@ export default function Home() {
             ) : (
               <div className={styles.meetingsList}>
                 {getConferenceMeetings().map(m => (
-                  <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
+                  <MeetingCard 
+                    key={m.id} 
+                    meeting={m}
+                    isEditing={editingId === m.id}
+                    editForm={editForm}
+                    onEditStart={handleEditStart}
+                    onEditChange={handleEditChange}
+                    onEditSave={handleEditSave}
+                    onEditCancel={handleEditCancel}
+                    onDelete={handleDeleteMeeting}
+                    onCopy={copyToClipboard}
+                  />
                 ))}
               </div>
             )}
@@ -373,21 +419,76 @@ export default function Home() {
             ) : (
               <div className={styles.meetingsList}>
                 {getTaskMeetings().map(m => (
-                  <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
+                  <MeetingCard 
+                    key={m.id} 
+                    meeting={m}
+                    isEditing={editingId === m.id}
+                    editForm={editForm}
+                    onEditStart={handleEditStart}
+                    onEditChange={handleEditChange}
+                    onEditSave={handleEditSave}
+                    onEditCancel={handleEditCancel}
+                    onDelete={handleDeleteMeeting}
+                    onCopy={copyToClipboard}
+                  />
                 ))}
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* 編輯模態框 */}
+      {editingId && <EditModal meeting={editForm} onChange={handleEditChange} onSave={handleEditSave} onCancel={handleEditCancel} />}
     </div>
   );
 }
 
-// 會議卡片組件
-function MeetingCard({ meeting, onDelete, onCopy }) {
+// 會議卡片
+function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, onEditSave, onEditCancel, onDelete, onCopy }) {
   const styles = require('../styles/Home.module.css');
   
+  if (isEditing) {
+    return (
+      <div className={styles.meetingCard}>
+        <div className={styles.editForm}>
+          <input 
+            type="text" 
+            value={editForm.title} 
+            onChange={(e) => onEditChange('title', e.target.value)}
+            placeholder="標題"
+            className={styles.editInput}
+          />
+          <input 
+            type="text" 
+            value={editForm.startTime} 
+            onChange={(e) => onEditChange('startTime', e.target.value)}
+            placeholder="時間 (HH:MM)"
+            className={styles.editInput}
+          />
+          <input 
+            type="text" 
+            value={editForm.password} 
+            onChange={(e) => onEditChange('password', e.target.value)}
+            placeholder="會議密碼"
+            className={styles.editInput}
+          />
+          <input 
+            type="text" 
+            value={editForm.hostPassword} 
+            onChange={(e) => onEditChange('hostPassword', e.target.value)}
+            placeholder="主持人密碼"
+            className={styles.editInput}
+          />
+          <div className={styles.editActions}>
+            <button onClick={onEditSave} className={styles.saveBtn}>💾 保存</button>
+            <button onClick={onEditCancel} className={styles.cancelBtn}>✕ 取消</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`${styles.meetingCard} ${styles[meeting.type]}`}>
       <div className={styles.cardHeader}>
@@ -402,12 +503,107 @@ function MeetingCard({ meeting, onDelete, onCopy }) {
         {meeting.organizer && <div className={styles.detail}>👤 {meeting.organizer}</div>}
         {meeting.link && <div className={styles.detail}>🔗 <a href={meeting.link} target="_blank" rel="noopener noreferrer">會議鏈接</a></div>}
         {meeting.password && <div className={styles.detail}>🔑 {meeting.password}</div>}
+        {meeting.hostPassword && <div className={styles.detail}>🔐 主持人密碼: {meeting.hostPassword}</div>}
       </div>
 
       <div className={styles.actions}>
         {meeting.link && <button onClick={() => window.open(meeting.link, '_blank')} className={styles.actionBtn}>🔗 加入</button>}
         {meeting.password && <button onClick={() => onCopy(meeting.password)} className={styles.actionBtn}>📋 複製</button>}
+        <button onClick={() => onEditStart(meeting)} className={styles.actionBtn}>✏️ 編輯</button>
         <button onClick={() => onDelete(meeting.id)} className={`${styles.actionBtn} ${styles.delete}`}>🗑 刪除</button>
+      </div>
+    </div>
+  );
+}
+
+// 編輯模態框
+function EditModal({ meeting, onChange, onSave, onCancel }) {
+  const styles = require('../styles/Home.module.css');
+  
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <h2>編輯會議</h2>
+        <div className={styles.modalForm}>
+          <label>標題</label>
+          <input 
+            type="text" 
+            value={meeting.title} 
+            onChange={(e) => onChange('title', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>時間</label>
+          <input 
+            type="text" 
+            value={meeting.startTime} 
+            onChange={(e) => onChange('startTime', e.target.value)}
+            placeholder="HH:MM"
+            className={styles.formInput}
+          />
+          
+          <label>日期</label>
+          <input 
+            type="text" 
+            value={meeting.date} 
+            onChange={(e) => onChange('date', e.target.value)}
+            placeholder="YYYY-MM-DD"
+            className={styles.formInput}
+          />
+          
+          <label>平台</label>
+          <input 
+            type="text" 
+            value={meeting.platform} 
+            onChange={(e) => onChange('platform', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>會議鏈接</label>
+          <input 
+            type="text" 
+            value={meeting.link} 
+            onChange={(e) => onChange('link', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>會議密碼</label>
+          <input 
+            type="text" 
+            value={meeting.password} 
+            onChange={(e) => onChange('password', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>主持人密碼</label>
+          <input 
+            type="text" 
+            value={meeting.hostPassword} 
+            onChange={(e) => onChange('hostPassword', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>主持人</label>
+          <input 
+            type="text" 
+            value={meeting.organizer} 
+            onChange={(e) => onChange('organizer', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>地點</label>
+          <input 
+            type="text" 
+            value={meeting.location} 
+            onChange={(e) => onChange('location', e.target.value)}
+            className={styles.formInput}
+          />
+        </div>
+        
+        <div className={styles.modalActions}>
+          <button onClick={onSave} className={styles.modalSaveBtn}>💾 保存</button>
+          <button onClick={onCancel} className={styles.modalCancelBtn}>✕ 取消</button>
+        </div>
       </div>
     </div>
   );
