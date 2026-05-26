@@ -75,7 +75,7 @@ export default function Home() {
     const subjectMatch = text.match(/主題[：:]\s*(.+?)[\n$]|主题[：:]\s*(.+?)[\n$]/);
     if (subjectMatch) {
       meeting.subject = subjectMatch[1] || subjectMatch[2];
-      meeting.title = meeting.subject; // 標題同步為主題
+      meeting.title = meeting.subject;
     }
 
     // 提取標題
@@ -205,6 +205,17 @@ export default function Home() {
     }
 
     const meeting = parseMeetingText(inputText);
+    
+    // 根據當前菜單決定類型
+    if (viewType === 'meeting') {
+      meeting.type = 'meeting';
+    } else if (viewType === 'task') {
+      meeting.type = 'task';
+    } else {
+      // all 模式下預設為 meeting
+      meeting.type = 'meeting';
+    }
+
     setMeetings([...meetings, meeting]);
     setInputText('');
     alert(`✅ 已添加：${meeting.title}`);
@@ -376,6 +387,10 @@ export default function Home() {
                   const dayMeetings = getDateMeetings(dateStr);
                   const isSelected = isSelectedDate(dateStr);
                   
+                  // 分別統計會議和工作項目
+                  const hasMeeting = dayMeetings.some(m => m.type === 'meeting');
+                  const hasTask = dayMeetings.some(m => m.type === 'task');
+                  
                   return (
                     <div 
                       key={day} 
@@ -383,7 +398,10 @@ export default function Home() {
                       onClick={() => setSelectedDate(dateStr)}
                     >
                       <div className={styles.dayNum}>{day}</div>
-                      {dayMeetings.length > 0 && <span className={styles.dot}>●</span>}
+                      <div className={styles.dotsContainer}>
+                        {hasMeeting && <span className={styles.dotMeeting}></span>}
+                        {hasTask && <span className={styles.dotTask}></span>}
+                      </div>
                     </div>
                   );
                 })}
