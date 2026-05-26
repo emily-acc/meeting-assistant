@@ -2,11 +2,15 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #f5f5f5;
+  min-height: 100vh;
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: white;
   padding: 20px;
   border-radius: 12px;
@@ -14,41 +18,86 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.headerTop h1 {
+.header h1 {
   margin: 0;
   font-size: 28px;
   color: #1a1a1a;
 }
 
-.userInfo {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.userInfo span {
-  font-size: 16px;
-  color: #666;
-}
-
-.logoutBtn {
+.busyStatus {
   padding: 8px 16px;
-  background: #f0f0f0;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+.loginBox {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+  max-width: 400px;
+}
+
+.loginBox h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  color: #1a1a1a;
+}
+
+.loginBox p {
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.passwordInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.error {
+  color: #e74c3c;
   font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.loginBtn {
+  width: 100%;
+  padding: 12px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
   transition: all 0.3s;
 }
 
-.logoutBtn:hover {
-  background: #e0e0e0;
+.loginBtn:hover {
+  background: #1a2a38;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
 }
 
 .tabs {
@@ -94,221 +143,17 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.formSection {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.toggleBtn {
-  padding: 10px 20px;
-  background: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.toggleBtn:hover {
-  background: #1a2a38;
-}
-
-.form {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #eee;
-}
-
-.formTabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.formTab {
-  flex: 1;
-  padding: 10px 15px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.3s;
-}
-
-.formTab.active {
-  background: #2c3e50;
-  color: white;
-  border-color: #2c3e50;
-}
-
-.tipBox {
-  background: #e8f4f8;
-  padding: 12px;
-  border-radius: 8px;
-  border-left: 3px solid #17a2b8;
-  margin-bottom: 15px;
-}
-
-.tipTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #0c5460;
-  margin-bottom: 8px;
-}
-
-.tipContent {
-  font-size: 12px;
-  color: #555;
-}
-
-.tipContent p {
-  margin: 4px 0;
-}
-
-.tipExample {
-  background: white;
-  padding: 8px;
-  border-radius: 4px;
-  margin: 8px 0;
-  color: #1a1a1a;
-  line-height: 1.6;
-  font-family: monospace;
-}
-
-.textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
-  margin-bottom: 10px;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
-}
-
-.parseBtn {
-  width: 100%;
-  padding: 12px;
-  background: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-  margin-bottom: 10px;
-}
-
-.parseBtn:hover {
-  background: #1a2a38;
-}
-
-.parseBtn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.previewContainer {
-  background: #f5f5f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-}
-
-.previewContainer h3 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
+.main h2 {
+  margin: 20px 0 15px 0;
+  font-size: 18px;
   color: #1a1a1a;
 }
 
-.previewList {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 10px;
+.calendar {
+  margin-bottom: 30px;
 }
 
-.previewItem {
-  background: white;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  border-left: 3px solid #2c3e50;
-}
-
-.previewItem strong {
-  color: #1a1a1a;
-  font-size: 13px;
-}
-
-.previewItem div {
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
-}
-
-.previewActions {
-  display: flex;
-  gap: 10px;
-}
-
-.confirmBtn {
-  flex: 1;
-  padding: 10px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.confirmBtn:hover {
-  background: #229954;
-}
-
-.cancelBtn {
-  flex: 1;
-  padding: 10px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.cancelBtn:hover {
-  background: #c0392b;
-}
-
-/* 月視圖樣式 */
-.monthContainer {
-  margin-top: 20px;
-}
-
-.monthHeader {
+.monthNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -318,7 +163,7 @@
   border-radius: 8px;
 }
 
-.monthHeader button {
+.monthNav button {
   padding: 8px 16px;
   background: #2c3e50;
   color: white;
@@ -327,45 +172,36 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.3s;
 }
 
-.monthHeader button:hover {
+.monthNav button:hover {
   background: #1a2a38;
 }
 
-.monthTitle {
-  font-size: 18px;
+.monthNav span {
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-.calendar {
-  width: 100%;
-}
-
-.weekDays {
+.calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
-  margin-bottom: 8px;
-  background: #2c3e50;
-  padding: 10px;
-  border-radius: 8px;
 }
 
-.weekDay {
+.dayHeader {
   text-align: center;
-  color: white;
   font-weight: 600;
-  font-size: 14px;
+  color: #2c3e50;
   padding: 10px 0;
+  font-size: 14px;
 }
 
-.calendarDays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+.emptyDay {
+  aspect-ratio: 1;
+  background: #f5f5f5;
+  border-radius: 8px;
 }
 
 .calendarDay {
@@ -376,8 +212,6 @@
   background: white;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s;
-  cursor: pointer;
   min-height: 100px;
 }
 
@@ -386,42 +220,22 @@
   border-color: #2c3e50;
 }
 
-/* 當天框起來 */
-.calendarDay.today {
-  border: 3px solid #e74c3c;
-  background: #ffe5e5;
-  box-shadow: 0 0 12px rgba(231, 76, 60, 0.3);
-}
-
-.calendarDay.today .dayNumber {
-  color: #e74c3c;
-  font-weight: 700;
-}
-
-.emptyDay {
-  aspect-ratio: 1;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.dayNumber {
+.dayNum {
   font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
   margin-bottom: 5px;
-  line-height: 1;
 }
 
-.dayContent {
+.dayItems {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   overflow: hidden;
-  font-size: 11px;
 }
 
-.taskTag {
+.itemBadge {
   background: #fff3cd;
   color: #856404;
   padding: 3px 6px;
@@ -430,257 +244,260 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-left: 2px solid #ffc107;
 }
 
-.taskTag.completed {
-  background: #e2e3e5;
+.moreItems {
+  font-size: 12px;
   color: #999;
-  text-decoration: line-through;
+  margin-top: 2px;
 }
 
-.eventIndicator {
-  background: #d1ecf1;
-  color: #0c5460;
-  padding: 3px 6px;
-  border-radius: 3px;
-  font-size: 11px;
-  border-left: 2px solid #17a2b8;
+.conflicts {
+  background: #ffe5e5;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #e74c3c;
+  margin-bottom: 20px;
 }
 
-/* 會議看板樣式 */
-.boardContainer {
-  margin-top: 20px;
-}
-
-.boardContainer h2 {
-  margin: 0 0 15px 0;
-  font-size: 18px;
-  color: #1a1a1a;
-}
-
-.noData {
-  text-align: center;
-  padding: 30px;
-  color: #999;
+.conflicts h3 {
+  margin: 0 0 10px 0;
+  color: #e74c3c;
   font-size: 14px;
 }
 
-.meetingsList {
+.conflictItem {
+  font-size: 13px;
+  color: #c0392b;
+  margin-bottom: 8px;
+}
+
+.conflictItem span {
+  font-weight: 600;
+}
+
+.itemList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.meetingCard {
+.itemCard {
+  display: flex;
+  gap: 15px;
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: #f9f9f9;
-  transition: all 0.3s;
-}
-
-.meetingCard:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-color: #2c3e50;
-}
-
-.meetingTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 8px;
-}
-
-.meetingDetails {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.meetingActions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.actionBtn {
-  padding: 6px 12px;
-  background: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.3s;
-  flex: 1;
-  min-width: 60px;
-}
-
-.actionBtn:hover {
-  background: #1a2a38;
-}
-
-.deleteBtn {
-  background: #e74c3c !important;
-}
-
-.deleteBtn:hover {
-  background: #c0392b !important;
-}
-
-/* 工作項目樣式 */
-.tasksList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.taskCard {
-  display: flex;
-  gap: 12px;
   align-items: center;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: white;
-  transition: all 0.3s;
 }
 
-.taskCard:hover {
+.itemCard:hover {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-color: #2c3e50;
 }
 
-.taskCard.completed {
-  opacity: 0.6;
-  background: #f5f5f5;
+.itemTime {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 60px;
+  font-size: 14px;
 }
 
-.taskCheckbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.taskInfo {
+.itemContent {
   flex: 1;
 }
 
-.taskTitle {
-  font-size: 14px;
+.itemTitle {
   font-weight: 500;
   color: #1a1a1a;
   margin-bottom: 4px;
 }
 
-.taskCard.completed .taskTitle {
-  text-decoration: line-through;
-  color: #999;
-}
-
-.taskDate {
+.itemPerson, .itemPlatform {
   font-size: 12px;
   color: #999;
+  margin-top: 2px;
 }
 
-.taskCheckbox {
-  accent-color: #27ae60;
+.deleteBtn {
+  padding: 6px 12px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
-/* 登入頁面 */
-.loginContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+.deleteBtn:hover {
+  background: #c0392b;
 }
 
-.loginBox {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  text-align: center;
-  max-width: 400px;
+.formBox {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-bottom: 30px;
 }
 
-.loginBox h1 {
-  margin: 0 0 10px 0;
-  font-size: 28px;
+.formRow {
+  margin-bottom: 15px;
+}
+
+.formRow label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
   color: #1a1a1a;
-}
-
-.loginBox p {
-  margin: 0 0 20px 0;
-  color: #666;
   font-size: 14px;
 }
 
-.googleButton {
+.input {
   width: 100%;
-  padding: 14px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 12px;
   background: #2c3e50;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   transition: all 0.3s;
 }
 
-.googleButton:hover {
+.submitBtn:hover {
   background: #1a2a38;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
 }
 
-/* 手機響應式 */
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  gap: 15px;
+}
+
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.message {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message.user {
+  background: #2c3e50;
+  color: white;
+  margin-left: 40px;
+  text-align: right;
+}
+
+.message.assistant {
+  background: #e8f4f8;
+  color: #0c5460;
+  margin-right: 40px;
+}
+
+.chatInput {
+  display: flex;
+  gap: 10px;
+}
+
+.chatInputBox {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.chatInputBox:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.chatSendBtn {
+  padding: 10px 20px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chatSendBtn:hover {
+  background: #1a2a38;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 12px;
   }
 
-  .headerTop {
+  .header {
     flex-direction: column;
     gap: 12px;
-    text-align: center;
   }
 
-  .headerTop h1 {
-    font-size: 22px;
-  }
-
-  .tabs {
-    flex-direction: column;
+  .calendarGrid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
   }
 
   .calendarDay {
-    min-height: 80px;
-    padding: 8px;
+    min-height: 70px;
+    padding: 6px;
   }
 
-  .dayNumber {
-    font-size: 14px;
+  .dayNum {
+    font-size: 12px;
   }
 
-  .taskTag, .eventIndicator {
+  .itemBadge {
     font-size: 10px;
-  }
-
-  .monthHeader {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .monthHeader button {
-    width: 100%;
   }
 }
