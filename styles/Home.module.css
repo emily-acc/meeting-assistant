@@ -443,6 +443,22 @@
   box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
 }
 
+.editSelect {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.editSelect:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+}
+
 .editActions {
   display: flex;
   gap: 6px;
@@ -532,6 +548,22 @@
 }
 
 .formInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.formSelect {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.formSelect:focus {
   outline: none;
   border-color: #2c3e50;
   box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
