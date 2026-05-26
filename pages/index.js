@@ -11,11 +11,6 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewType, setViewType] = useState('all'); // 'all', 'meeting', 'task'
-  
-  const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', text: '貼入 Webex/Teams/Zoom 會議或面試信息，我會自動識別並添加。' }
-  ]);
-  const [chatInput, setChatInput] = useState('');
 
   // 登入
   const handleLogin = () => {
@@ -65,28 +60,28 @@ export default function Home() {
     }
 
     // 提取標題
-    const titleMatch = text.match(/【(.+?)】|^(.{2,30}?)[，,。]/m);
+    const titleMatch = text.match(/【(.+?)】|標題[：:]\s*(.+?)[\n$]|^([^【\n：:]{2,40}?)[\n【時間日期]/m);
     if (titleMatch) {
-      meeting.title = titleMatch[1] || titleMatch[2];
+      meeting.title = titleMatch[1] || titleMatch[2] || titleMatch[3];
     }
 
     // 提取人名
-    const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭]\w{1,2})/);
+    const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
     if (nameMatch && !meeting.title) {
       meeting.title = nameMatch[1] + (meeting.type === 'task' ? '面試' : '會議');
     }
 
     // 提取地點
-    const locationMatch = text.match(/到(\S+?)[廠場室間區]/);
+    const locationMatch = text.match(/到(\S+?)[廠場室間區]|地點[：:]\s*([^\n]+)/);
     if (locationMatch) {
-      meeting.location = locationMatch[1] + locationMatch[2];
+      meeting.location = locationMatch[1] ? locationMatch[1] + locationMatch[2] : locationMatch[2];
     }
 
     // 提取時間（早上/下午格式）
-    const ampmMatch = text.match(/(早上|上午|中午|下午|晚上)(\d{1,2})[點:：](\d{0,2})/);
+    const ampmMatch = text.match(/(早上|上午|中午|下午|晚上)[\s]?(\d{1,2})[點:：](\d{0,2})|時間[：:]\s*(\d{1,2})[點:：](\d{0,2})/);
     if (ampmMatch) {
-      let hour = parseInt(ampmMatch[2]);
-      const min = ampmMatch[3] || '00';
+      let hour = parseInt(ampmMatch[2] || ampmMatch[4]);
+      const min = ampmMatch[3] || ampmMatch[5] || '00';
       const period = ampmMatch[1];
       
       if (period === '下午' || period === '晚上') {
@@ -98,22 +93,26 @@ export default function Home() {
       
       meeting.startTime = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
     } else {
-      // 直接提取時間
+      // 直接提取時間 HH:MM
       const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
       if (timeMatch) {
         meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
       }
     }
 
-    // 提取日期（明確日期）
-    const explicitDateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
+    // 提取日期（明確日期格式）
+    const explicitDateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})\/(\d{1,2})/);
     if (explicitDateMatch) {
-      const month = String(explicitDateMatch[1]).padStart(2, '0');
-      const day = String(explicitDateMatch[2]).padStart(2, '0');
-      const year = new Date().getFullYear();
-      meeting.date = `${year}-${month}-${day}`;
+      if (explicitDateMatch[1]) {
+        meeting.date = `${explicitDateMatch[1]}-${String(explicitDateMatch[2]).padStart(2, '0')}-${String(explicitDateMatch[3]).padStart(2, '0')}`;
+      } else {
+        const month = String(explicitDateMatch[4]).padStart(2, '0');
+        const day = String(explicitDateMatch[5]).padStart(2, '0');
+        const year = new Date().getFullYear();
+        meeting.date = `${year}-${month}-${day}`;
+      }
     } else {
-      // 相對日期
+      // 相對日期格式
       const relativeMatch = text.match(/下週([一二三四五六日])|明天|後天|今天/);
       if (relativeMatch) {
         const today = new Date();
@@ -135,23 +134,23 @@ export default function Home() {
     }
 
     // 提取平台
-    if (text.includes('Webex')) meeting.platform = 'Webex';
-    else if (text.includes('Teams')) meeting.platform = 'Teams';
-    else if (text.includes('Zoom')) meeting.platform = 'Zoom';
+    if (text.includes('Webex') || text.includes('webex')) meeting.platform = 'Webex';
+    else if (text.includes('Teams') || text.includes('teams')) meeting.platform = 'Teams';
+    else if (text.includes('Zoom') || text.includes('zoom')) meeting.platform = 'Zoom';
     else if (text.includes('Google Meet')) meeting.platform = 'Google Meet';
     else if (text.includes('104')) meeting.platform = '104';
     else if (meeting.type === 'task') meeting.platform = '面試';
 
     // 提取鏈接
-    const linkMatch = text.match(/(https?:\/\/[^\s]+)/);
+    const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
     if (linkMatch) meeting.link = linkMatch[1];
 
-    // 提取組織者
-    const orgMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭]\w{1,2})/);
-    if (orgMatch) meeting.organizer = orgMatch[1];
+    // 提取組織者/主持人
+    const orgMatch = text.match(/主持人[：:]\s*(\S+)|主席[：:]\s*(\S+)|寄件人[：:]\s*(\S+)|召集人[：:]\s*(\S+)/);
+    if (orgMatch) meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3] || orgMatch[4];
 
     // 提取密碼
-    const pwMatch = text.match(/密碼[：:]\s*(\S+)|會議號碼[：:]\s*(\d+)|(\d{6})/);
+    const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|會議號碼[：:]\s*(\d+)|密码[：:]\s*([^\n\s]+)/);
     if (pwMatch) meeting.password = pwMatch[1] || pwMatch[2] || pwMatch[3];
 
     return meeting;
@@ -166,18 +165,15 @@ export default function Home() {
 
     const meeting = parseMeetingText(inputText);
     if (!meeting.title) {
-      meeting.title = '新事項';
+      meeting.title = '新會議';
     }
 
     setMeetings([...meetings, meeting]);
-    setChatMessages([...chatMessages, 
-      { role: 'user', text: inputText.substring(0, 80) + '...' },
-      { role: 'assistant', text: `✅ 已添加：${meeting.title} (${meeting.date})` }
-    ]);
     setInputText('');
+    alert(`✅ 已添加：${meeting.title}`);
   };
 
-  // 刪除
+  // 刪除會議
   const handleDeleteMeeting = (id) => {
     setMeetings(meetings.filter(m => m.id !== id));
   };
@@ -186,31 +182,6 @@ export default function Home() {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert('✅ 已複製');
-  };
-
-  // 對話
-  const handleSendChat = () => {
-    if (!chatInput.trim()) return;
-    setChatMessages([...chatMessages, { role: 'user', text: chatInput }]);
-    setTimeout(() => {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: '已記錄：' + chatInput }]);
-    }, 300);
-    setChatInput('');
-  };
-
-  // 獲取選中日期的行程
-  const getSelectedDateMeetings = () => {
-    return meetings
-      .filter(m => m.date === selectedDate)
-      .sort((a, b) => (a.startTime || '00:00').localeCompare(b.startTime || '00:00'));
-  };
-
-  // 按類型篩選
-  const getFilteredMeetings = () => {
-    const all = getSelectedDateMeetings();
-    if (viewType === 'meeting') return all.filter(m => m.type === 'meeting');
-    if (viewType === 'task') return all.filter(m => m.type === 'task');
-    return all;
   };
 
   // 日曆相關
@@ -243,6 +214,29 @@ export default function Home() {
     return dateStr === selectedDate;
   };
 
+  // 獲取各種列表
+  const getAllMeetings = () => {
+    return meetings.sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.startTime || '00:00').localeCompare(b.startTime || '00:00');
+    });
+  };
+
+  const getConferenceMeetings = () => {
+    return getAllMeetings().filter(m => m.type === 'meeting');
+  };
+
+  const getTaskMeetings = () => {
+    return getAllMeetings().filter(m => m.type === 'task');
+  };
+
+  const getSelectedDateMeetings = () => {
+    return getDateMeetings(selectedDate).sort((a, b) => {
+      return (a.startTime || '00:00').localeCompare(b.startTime || '00:00');
+    });
+  };
+
   if (!isLoggedIn) {
     return (
       <div className={styles.loginContainer}>
@@ -263,9 +257,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const filteredMeetings = getFilteredMeetings();
-  const allMeetings = getSelectedDateMeetings();
 
   return (
     <div className={styles.container}>
@@ -295,112 +286,128 @@ export default function Home() {
         </button>
       </div>
 
-      <div className={styles.mainContent}>
-        {/* 左側：月曆 */}
-        <div className={styles.leftPanel}>
-          <div className={styles.calendarSection}>
-            <div className={styles.monthNav}>
-              <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>⬅</button>
-              <span>{currentDate.getFullYear()}/{currentDate.getMonth() + 1}</span>
-              <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>➡</button>
+      {/* 輸入框 */}
+      <div className={styles.inputSection}>
+        <textarea
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="貼入 Webex / Teams / 面試信息..."
+          className={styles.largeInput}
+        />
+        <button onClick={handleAddMeeting} className={styles.addBtn}>➕ 添加</button>
+      </div>
+
+      {/* 內容區 */}
+      <div className={styles.contentSection}>
+        {viewType === 'all' && (
+          <div className={styles.allViewContainer}>
+            {/* 左側：月曆 */}
+            <div className={styles.calendarPanel}>
+              <div className={styles.monthNav}>
+                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>⬅</button>
+                <span>{currentDate.getFullYear()}/{currentDate.getMonth() + 1}</span>
+                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>➡</button>
+              </div>
+
+              <div className={styles.calendarGrid}>
+                {['日', '一', '二', '三', '四', '五', '六'].map(day => (
+                  <div key={day} className={styles.dayHeader}>{day}</div>
+                ))}
+                {getMonthDates().map((day, idx) => {
+                  if (day === null) return <div key={`empty-${idx}`} className={styles.emptyDay}></div>;
+                  
+                  const dateStr = formatDateString(day);
+                  const dayMeetings = getDateMeetings(dateStr);
+                  const isSelected = isSelectedDate(dateStr);
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                      onClick={() => setSelectedDate(dateStr)}
+                    >
+                      <div className={styles.dayNum}>{day}</div>
+                      {dayMeetings.length > 0 && <span className={styles.dot}>●</span>}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className={styles.calendarGrid}>
-              {['日', '一', '二', '三', '四', '五', '六'].map(day => (
-                <div key={day} className={styles.dayHeader}>{day}</div>
-              ))}
-              {getMonthDates().map((day, idx) => {
-                if (day === null) return <div key={`empty-${idx}`} className={styles.emptyDay}></div>;
-                
-                const dateStr = formatDateString(day);
-                const dayMeetings = getDateMeetings(dateStr);
-                const isSelected = isSelectedDate(dateStr);
-                
-                return (
-                  <div 
-                    key={day} 
-                    className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
-                    onClick={() => setSelectedDate(dateStr)}
-                  >
-                    <div className={styles.dayNum}>{day}</div>
-                    {dayMeetings.length > 0 && <span className={styles.dot}>●</span>}
-                  </div>
-                );
-              })}
+            {/* 右側：行程列表 */}
+            <div className={styles.listPanel}>
+              <h2>📌 {selectedDate} ({getSelectedDateMeetings().length})</h2>
+              {getSelectedDateMeetings().length === 0 ? (
+                <p className={styles.noData}>暫無行程</p>
+              ) : (
+                <div className={styles.meetingsList}>
+                  {getSelectedDateMeetings().map(m => (
+                    <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+        )}
 
-          {/* 輸入框 */}
-          <div className={styles.inputSection}>
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="貼入會議/面試信息..."
-              className={styles.largeInput}
-            />
-            <button onClick={handleAddMeeting} className={styles.addBtn}>➕ 添加</button>
-          </div>
-        </div>
-
-        {/* 右側：行程列表 */}
-        <div className={styles.rightPanel}>
-          <div className={styles.todaySection}>
-            <h2>📌 {selectedDate} ({allMeetings.length})</h2>
-            
-            {filteredMeetings.length === 0 ? (
-              <p className={styles.noData}>暫無行程</p>
+        {viewType === 'meeting' && (
+          <div className={styles.listPanel}>
+            <h2>📞 會議時程 ({getConferenceMeetings().length})</h2>
+            {getConferenceMeetings().length === 0 ? (
+              <p className={styles.noData}>暫無會議</p>
             ) : (
               <div className={styles.meetingsList}>
-                {filteredMeetings.map(m => (
-                  <div key={m.id} className={`${styles.meetingCard} ${styles[m.type]}`}>
-                    <div className={styles.cardTime}>
-                      {m.startTime || '--:--'}
-                    </div>
-                    <div className={styles.cardContent}>
-                      <div className={styles.cardTitle}>{m.title}</div>
-                      {m.platform && <div className={styles.badge}>{m.platform}</div>}
-                      {m.location && <div className={styles.detail}>📍 {m.location}</div>}
-                      {m.organizer && <div className={styles.detail}>👤 {m.organizer}</div>}
-                      {m.link && <div className={styles.detail}>🔗 <a href={m.link} target="_blank" rel="noopener noreferrer">鏈接</a></div>}
-                      {m.password && <div className={styles.detail}>🔑 {m.password}</div>}
-                    </div>
-                    
-                    <div className={styles.actions}>
-                      {m.link && <button onClick={() => window.open(m.link, '_blank')} className={styles.actionBtn}>🔗</button>}
-                      {m.password && <button onClick={() => copyToClipboard(m.password)} className={styles.actionBtn}>📋</button>}
-                      <button onClick={() => handleDeleteMeeting(m.id)} className={`${styles.actionBtn} ${styles.delete}`}>🗑</button>
-                    </div>
-                  </div>
+                {getConferenceMeetings().map(m => (
+                  <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
                 ))}
               </div>
             )}
           </div>
+        )}
 
-          {/* 對話框 */}
-          <div className={styles.chatSection}>
-            <h2>💬 對話</h2>
-            <div className={styles.chatBox}>
-              <div className={styles.messages}>
-                {chatMessages.map((msg, idx) => (
-                  <div key={idx} className={`${styles.message} ${styles[msg.role]}`}>
-                    {msg.role === 'user' ? '👤' : '🤖'} {msg.text}
-                  </div>
+        {viewType === 'task' && (
+          <div className={styles.listPanel}>
+            <h2>📝 工作列表 ({getTaskMeetings().length})</h2>
+            {getTaskMeetings().length === 0 ? (
+              <p className={styles.noData}>暫無工作項目</p>
+            ) : (
+              <div className={styles.meetingsList}>
+                {getTaskMeetings().map(m => (
+                  <MeetingCard key={m.id} meeting={m} onDelete={handleDeleteMeeting} onCopy={copyToClipboard} />
                 ))}
               </div>
-              <div className={styles.inputBox}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
-                  placeholder="問我..."
-                  className={styles.chatInputBox}
-                />
-                <button onClick={handleSendChat} className={styles.sendBtn}>發送</button>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// 會議卡片組件
+function MeetingCard({ meeting, onDelete, onCopy }) {
+  const styles = require('../styles/Home.module.css');
+  
+  return (
+    <div className={`${styles.meetingCard} ${styles[meeting.type]}`}>
+      <div className={styles.cardHeader}>
+        <div className={styles.cardTime}>{meeting.startTime || '--:--'}</div>
+        <div className={styles.cardTitle}>{meeting.title}</div>
+      </div>
+
+      <div className={styles.cardInfo}>
+        {meeting.date && <div className={styles.detail}>📅 {meeting.date}</div>}
+        {meeting.platform && <div className={styles.badge}>{meeting.platform}</div>}
+        {meeting.location && <div className={styles.detail}>📍 {meeting.location}</div>}
+        {meeting.organizer && <div className={styles.detail}>👤 {meeting.organizer}</div>}
+        {meeting.link && <div className={styles.detail}>🔗 <a href={meeting.link} target="_blank" rel="noopener noreferrer">會議鏈接</a></div>}
+        {meeting.password && <div className={styles.detail}>🔑 {meeting.password}</div>}
+      </div>
+
+      <div className={styles.actions}>
+        {meeting.link && <button onClick={() => window.open(meeting.link, '_blank')} className={styles.actionBtn}>🔗 加入</button>}
+        {meeting.password && <button onClick={() => onCopy(meeting.password)} className={styles.actionBtn}>📋 複製</button>}
+        <button onClick={() => onDelete(meeting.id)} className={`${styles.actionBtn} ${styles.delete}`}>🗑 刪除</button>
       </div>
     </div>
   );
