@@ -181,7 +181,7 @@
   min-height: 500px;
 }
 
-/* 全部行程（月曆 + 列表） */
+/* 全部行程 */
 .allViewContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -365,12 +365,12 @@
   color: #666;
   margin-bottom: 2px;
   line-height: 1.3;
+  word-break: break-all;
 }
 
 .detail a {
   color: #0066cc;
   text-decoration: none;
-  word-break: break-all;
 }
 
 .detail a:hover {
@@ -392,6 +392,7 @@
   display: flex;
   gap: 6px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .actionBtn {
@@ -404,6 +405,7 @@
   color: #333;
   transition: all 0.2s;
   flex: 1;
+  min-width: 50px;
   text-align: center;
 }
 
@@ -418,6 +420,158 @@
 
 .delete:hover {
   background: #ffe5e5;
+}
+
+/* 編輯表單（卡片內） */
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editInput {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.saveBtn {
+  padding: 6px 10px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex: 1;
+}
+
+.saveBtn:hover {
+  background: #229954;
+}
+
+.cancelBtn {
+  padding: 6px 10px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex: 1;
+}
+
+.cancelBtn:hover {
+  background: #c0392b;
+}
+
+/* 模態框 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.modalContent h2 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modalForm label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.formInput {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+}
+
+.modalSaveBtn {
+  flex: 1;
+  padding: 10px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.modalSaveBtn:hover {
+  background: #229954;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 10px;
+  background: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.modalCancelBtn:hover {
+  background: #7f8c8d;
 }
 
 /* 響應式 */
@@ -487,5 +641,9 @@
 
   .monthNav span {
     font-size: 12px;
+  }
+
+  .modalContent {
+    max-width: 95%;
   }
 }
