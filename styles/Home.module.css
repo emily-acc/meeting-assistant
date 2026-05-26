@@ -259,6 +259,7 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 12px;
+  position: relative;
 }
 
 .calendarDay:hover {
@@ -277,12 +278,32 @@
   font-size: 11px;
   font-weight: 500;
   color: #1a1a1a;
+  margin-bottom: 2px;
 }
 
-.dot {
-  color: #e74c3c;
-  font-size: 6px;
-  margin-top: 1px;
+.dotsContainer {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  min-height: 8px;
+}
+
+.dotMeeting {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #0066cc;
+  border-radius: 50%;
+  margin: 0 1px;
+}
+
+.dotTask {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #27ae60;
+  border-radius: 50%;
+  margin: 0 1px;
 }
 
 .listPanel {
@@ -327,7 +348,7 @@
 }
 
 .meetingCard.task {
-  border-left-color: #f39c12;
+  border-left-color: #27ae60;
 }
 
 .meetingCard:hover {
