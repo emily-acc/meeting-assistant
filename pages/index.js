@@ -54,13 +54,19 @@ export default function Home() {
       password: '',
       hostPassword: '',
       location: '',
+      phone: '',
       type: 'meeting',
       notes: text
     };
 
-    // 判斷類型
-    if (text.includes('面試') || text.includes('104') || text.includes('招聘')) {
+    // 判斷類型（面試 → meeting，不是 task）
+    const isInterview = text.includes('面試') || text.includes('面试');
+    const isTask = (text.includes('財稅報') || text.includes('审核') || text.includes('提交') || text.includes('填寫')) && !isInterview;
+    
+    if (isTask) {
       meeting.type = 'task';
+    } else {
+      meeting.type = 'meeting'; // 面試歸為會議
     }
 
     // 提取標題
@@ -69,19 +75,34 @@ export default function Home() {
       meeting.title = titleMatch[1] || titleMatch[2] || titleMatch[3];
     }
 
-    // 提取人名
+    // 如果沒有標題，根據內容推斷
+    if (!meeting.title) {
+      if (isInterview) {
+        const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
+        meeting.title = nameMatch ? nameMatch[1] + '面試' : '面試';
+      } else if (text.includes('財稅報')) {
+        meeting.title = '法人財稅報';
+      } else if (text.includes('會議')) {
+        const titleMatch2 = text.match(/(.{2,20}?)會議/);
+        meeting.title = titleMatch2 ? titleMatch2[1] + '會議' : '會議';
+      } else {
+        meeting.title = '新會議';
+      }
+    }
+
+    // 提取人名（面試對象或主持人）
     const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
-    if (nameMatch && !meeting.title) {
-      meeting.title = nameMatch[1] + (meeting.type === 'task' ? '面試' : '會議');
+    if (nameMatch && isInterview && !meeting.title.includes(nameMatch[1])) {
+      meeting.organizer = nameMatch[1];
     }
 
     // 提取地點
-    const locationMatch = text.match(/到(\S+?)[廠場室間區]|地點[：:]\s*([^\n]+)/);
+    const locationMatch = text.match(/到(\S+?)[廠場室間區]|地點[：:]\s*([^\n]+)|永寧/);
     if (locationMatch) {
-      meeting.location = locationMatch[1] ? locationMatch[1] + locationMatch[2] : locationMatch[2];
+      meeting.location = locationMatch[1] ? locationMatch[1] + (locationMatch[2] || '') : (locationMatch[2] || '永寧廠');
     }
 
-    // 提取時間
+    // 提取時間（支持多種格式）
     const ampmMatch = text.match(/(早上|上午|中午|下午|晚上)[\s]?(\d{1,2})[點:：](\d{0,2})|時間[：:]\s*(\d{1,2})[點:：](\d{0,2})/);
     if (ampmMatch) {
       let hour = parseInt(ampmMatch[2] || ampmMatch[4]);
@@ -103,18 +124,21 @@ export default function Home() {
       }
     }
 
-    // 提取日期
-    const explicitDateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})\/(\d{1,2})/);
-    if (explicitDateMatch) {
-      if (explicitDateMatch[1]) {
-        meeting.date = `${explicitDateMatch[1]}-${String(explicitDateMatch[2]).padStart(2, '0')}-${String(explicitDateMatch[3]).padStart(2, '0')}`;
-      } else {
-        const month = String(explicitDateMatch[4]).padStart(2, '0');
-        const day = String(explicitDateMatch[5]).padStart(2, '0');
+    // 提取日期（支持多種格式）
+    const dateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})[\/年](\d{1,2})/);
+    if (dateMatch) {
+      if (dateMatch[1]) {
+        // YYYY年MM月DD日 格式
+        meeting.date = `${dateMatch[1]}-${String(dateMatch[2]).padStart(2, '0')}-${String(dateMatch[3]).padStart(2, '0')}`;
+      } else if (dateMatch[4] && dateMatch[5]) {
+        // M/D 或 MM/DD 格式
+        const month = String(dateMatch[4]).padStart(2, '0');
+        const day = String(dateMatch[5]).padStart(2, '0');
         const year = new Date().getFullYear();
         meeting.date = `${year}-${month}-${day}`;
       }
     } else {
+      // 相對日期
       const relativeMatch = text.match(/下週([一二三四五六日])|明天|後天|今天/);
       if (relativeMatch) {
         const today = new Date();
@@ -141,15 +165,24 @@ export default function Home() {
     else if (text.includes('Zoom')) meeting.platform = 'Zoom';
     else if (text.includes('Google Meet')) meeting.platform = 'Google Meet';
     else if (text.includes('104')) meeting.platform = '104';
-    else if (meeting.type === 'task') meeting.platform = '面試';
+    else if (isInterview) meeting.platform = '面試';
+    else if (isTask) meeting.platform = '工作';
 
     // 提取鏈接
     const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
     if (linkMatch) meeting.link = linkMatch[1];
 
-    // 提取組織者
-    const orgMatch = text.match(/主持人[：:]\s*(\S+)|主席[：:]\s*(\S+)|寄件人[：:]\s*(\S+)/);
-    if (orgMatch) meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3];
+    // 提取組織者/主持人（包含部門和電話）
+    const orgMatch = text.match(/主持人[：:]\s*([^\n]+)|主席[：:]\s*([^\n]+)|寄件人[：:]\s*([^\n]+)|([A-Za-z\s\.]+\s[\u4e00-\u9fff]{2,4})/);
+    if (orgMatch) {
+      meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3] || orgMatch[4];
+    }
+
+    // 提取電話號碼
+    const phoneMatch = text.match(/O\s*\+(\d{3}\.\d{1,2}\.\d{4,5}\.\d{4,5})|Ext\.\d+|電話[：:]\s*(\+[\d\.\-\s]+)/);
+    if (phoneMatch) {
+      meeting.phone = phoneMatch[1] || phoneMatch[2] || '';
+    }
 
     // 提取會議密碼
     const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|會議號碼[：:]\s*(\d+)|密码[：:]\s*([^\n\s]+)/);
@@ -170,10 +203,6 @@ export default function Home() {
     }
 
     const meeting = parseMeetingText(inputText);
-    if (!meeting.title) {
-      meeting.title = '新會議';
-    }
-
     setMeetings([...meetings, meeting]);
     setInputText('');
     alert(`✅ 已添加：${meeting.title}`);
@@ -317,7 +346,7 @@ export default function Home() {
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="貼入 Webex / Teams / 面試信息..."
+          placeholder="貼入 Webex / Teams / 面試 / 郵件信息..."
           className={styles.largeInput}
         />
         <button onClick={handleAddMeeting} className={styles.addBtn}>➕ 添加</button>
@@ -501,6 +530,7 @@ function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, 
         {meeting.platform && <div className={styles.badge}>{meeting.platform}</div>}
         {meeting.location && <div className={styles.detail}>📍 {meeting.location}</div>}
         {meeting.organizer && <div className={styles.detail}>👤 {meeting.organizer}</div>}
+        {meeting.phone && <div className={styles.detail}>☎️ {meeting.phone}</div>}
         {meeting.link && <div className={styles.detail}>🔗 <a href={meeting.link} target="_blank" rel="noopener noreferrer">會議鏈接</a></div>}
         {meeting.password && <div className={styles.detail}>🔑 {meeting.password}</div>}
         {meeting.hostPassword && <div className={styles.detail}>🔐 主持人密碼: {meeting.hostPassword}</div>}
@@ -596,6 +626,14 @@ function EditModal({ meeting, onChange, onSave, onCancel }) {
             type="text" 
             value={meeting.location} 
             onChange={(e) => onChange('location', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>電話</label>
+          <input 
+            type="text" 
+            value={meeting.phone} 
+            onChange={(e) => onChange('phone', e.target.value)}
             className={styles.formInput}
           />
         </div>
