@@ -120,6 +120,13 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [parser] = useState(new DateTimeParser());
 
+  const frequencyText = {
+    daily: '每日',
+    weekly: '每週',
+    monthly: '每月',
+    yearly: '每年'
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('appData');
     if (saved) {
@@ -222,6 +229,7 @@ export default function Home() {
       dueTime: dateTime.times[0]?.parsed || null,
       contact: null,
       isRecurring: true,
+      frequency: 'daily',
       originalText: text,
       createdAt: new Date().toISOString()
     };
@@ -422,7 +430,7 @@ export default function Home() {
             className={styles.input}
           />
           <button 
-            onClick={() => { setModalType('work'); setShowModal(true); }} 
+            onClick={() => { setModalType('work'); setModalData({ isRecurring: false }); setShowModal(true); }} 
             className={styles.pasteBtn}
           >
             📋 貼郵件
@@ -476,7 +484,7 @@ export default function Home() {
             className={styles.input}
           />
           <button 
-            onClick={() => { setModalType('work'); setModalData({ isRecurring: true }); setShowModal(true); }} 
+            onClick={() => { setModalType('work'); setModalData({ isRecurring: true, frequency: 'daily' }); setShowModal(true); }} 
             className={styles.pasteBtn}
           >
             📋 貼郵件
@@ -489,7 +497,8 @@ export default function Home() {
           sorted.map(w => (
             <div key={w.id} className={styles.itemCard}>
               <div className={styles.itemTitle}>{w.title}</div>
-              {w.dueDate && <div className={styles.itemMeta}>📅 每 {w.dueDate} {w.dueTime ? `🕐 ${w.dueTime}` : ''}</div>}
+              <div className={styles.itemMeta}>♻️ {frequencyText[w.frequency] || '每日'}</div>
+              {w.dueDate && <div className={styles.itemMeta}>📅 {w.dueDate} {w.dueTime ? `🕐 ${w.dueTime}` : ''}</div>}
               {w.contact && <div className={styles.itemMeta}>👤 {w.contact}</div>}
               <div className={styles.buttonGroup}>
                 <button onClick={() => openWorkModal(w)} className={styles.viewBtn}>編輯</button>
@@ -510,6 +519,7 @@ export default function Home() {
       dueTime: '',
       contact: '',
       isRecurring: false,
+      frequency: 'daily',
       originalText: ''
     });
 
@@ -561,6 +571,22 @@ export default function Home() {
           <option value="single">一次性工作</option>
           <option value="recurring">例行工作</option>
         </select>
+
+        {formData.isRecurring && (
+          <>
+            <label>循環頻率</label>
+            <select
+              value={formData.frequency || 'daily'}
+              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+              className={styles.input}
+            >
+              <option value="daily">每日</option>
+              <option value="weekly">每週</option>
+              <option value="monthly">每月</option>
+              <option value="yearly">每年</option>
+            </select>
+          </>
+        )}
 
         {formData.originalText && (
           <>
