@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/Home.module.css';
 
-// Gemini AI 識別
+// Gemini AI 識別（改進版）
 const identifyWithAI = async (text, apiKey) => {
   try {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey, {
@@ -10,32 +10,41 @@ const identifyWithAI = async (text, apiKey) => {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `請分析這段郵件內容，提取以下信息（如果沒有則為空）：
-            
-【會議相關】
-- 會議標題
-- 開始日期（YYYY-MM-DD）
-- 開始時間（HH:MM）
-- 結束時間（HH:MM）
-- 會議地點
-- 主持人名稱
-- 會議密碼
-- 會議連結（完整URL）
-- 會議編號
+            text: `請精確分析這段會議邀請或工作郵件，按照以下格式提取信息（如果沒有則為空字符串）：
 
-【工作相關】
-- 工作標題
-- 截止日期（YYYY-MM-DD）
-- 截止時間（HH:MM）
-- 聯絡人名稱
-- 聯絡人電話
+【日期時間識別規則】
+- 如果寫「5月14日（週四）上午10:00–11:00」，應提取為：
+  開始日期: 2026-05-14
+  開始時間: 10:00
+  結束時間: 11:00
+- 所有日期統一為 YYYY-MM-DD 格式
+- 所有時間統一為 HH:MM 格式（24小時制）
 
-【其他】
-- 是否是會議（true/false）
-- 是否是例行工作（true/false）
-- 循環頻率（daily/weekly/monthly/yearly，如果是例行）
+【會議信息】
+會議標題: (郵件標題或會議名稱)
+開始日期: (YYYY-MM-DD格式)
+開始時間: (HH:MM格式)
+結束時間: (HH:MM格式)
+會議地點: (實體地點或「線上」)
+主持人名稱: 
+會議密碼: (所有可能的密碼)
+會議連結: (完整的Teams/Webex/Zoom連結URL)
+會議識別碼: (會議號碼，去掉空格)
+參加對象: (參加者說明)
 
-請用 JSON 格式回復，只回復 JSON，不要其他文字。
+【工作信息】
+工作標題: 
+截止日期: (YYYY-MM-DD格式)
+截止時間: (HH:MM格式)
+聯絡人名稱:
+聯絡人電話:
+
+【分類】
+是否是會議: (true/false)
+是否是例行工作: (true/false)
+循環頻率: (如果是例行：daily/weekly/monthly/yearly，否則為空)
+
+回復格式：只回復JSON，不要markdown代碼塊或其他文字。
 
 郵件內容：
 ${text}`
@@ -48,8 +57,9 @@ ${text}`
     const content = data.contents[0].parts[0].text;
     
     try {
-      return JSON.parse(content);
-    } catch {
+      const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleanContent);
+    } catch (e) {
       console.error('AI response:', content);
       return null;
     }
@@ -57,6 +67,37 @@ ${text}`
     console.error('AI 識別失敗:', error);
     return null;
   }
+};
+
+// 本地識別增強
+const enhanceIdentification = (aiResult, text) => {
+  const result = aiResult || {};
+
+  // 識別連結
+  if (!result['會議連結'] || result['會議連結'] === '') {
+    const linkMatch = text.match(/(https:\/\/[^\s]+)/);
+    if (linkMatch) {
+      result['會議連結'] = linkMatch[0];
+    }
+  }
+
+  // 識別密碼
+  if (!result['會議密碼'] || result['會議密碼'] === '') {
+    const pwMatch = text.match(/[密碼password]+[：:]\s*([A-Za-z0-9]+)/i);
+    if (pwMatch) {
+      result['會議密碼'] = pwMatch[1];
+    }
+  }
+
+  // 識別碼
+  if (!result['會議識別碼'] || result['會議識別碼'] === '') {
+    const idMatch = text.match(/[識別碼meeting\s]+[id]*[：:]\s*([0-9\s]+)/i);
+    if (idMatch) {
+      result['會議識別碼'] = idMatch[1].replace(/\s/g, '');
+    }
+  }
+
+  return result;
 };
 
 // 日期時間識別
@@ -97,31 +138,6 @@ class DateTimeParser {
     const paddedDay = String(day).padStart(2, '0');
     return { date: `${year}-${paddedMonth}-${paddedDay}`, valid: true };
   }
-
-  parseChineseTime(timeStr) {
-    if (!timeStr) return { time: null, valid: false };
-    let hour, minute = 0;
-
-    const match = timeStr.match(/(\d{1,2})\s*[:：]?\s*(\d{2})?/);
-    if (!match) return { time: null, valid: false };
-
-    hour = parseInt(match[1]);
-    minute = match[2] ? parseInt(match[2]) : 0;
-
-    if (timeStr.includes('上午')) {
-      if (hour === 12) hour = 0;
-    } else if (timeStr.includes('下午') || timeStr.includes('午後')) {
-      if (hour !== 12) hour += 12;
-    } else if (timeStr.includes('晚上')) {
-      if (hour < 12) hour += 12;
-    } else if (timeStr.includes('凌晨')) {
-      if (hour > 12) hour -= 12;
-    }
-
-    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return { time: null, valid: false };
-
-    return { time: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`, valid: true };
-  }
 }
 
 // 主應用
@@ -151,6 +167,7 @@ export default function Home() {
     yearly: '每年'
   };
 
+  // 保存到 localStorage
   useEffect(() => {
     const saved = localStorage.getItem('appData');
     if (saved) {
@@ -165,6 +182,7 @@ export default function Home() {
     localStorage.setItem('appData', JSON.stringify({ meetings, todoWorks, recurringWorks }));
   }, [meetings, todoWorks, recurringWorks]);
 
+  // 打開編輯表單
   const openWorkModal = (work = null) => {
     setModalType('work');
     setModalData(work);
@@ -177,6 +195,7 @@ export default function Home() {
     setShowModal(true);
   };
 
+  // 保存工作
   const saveWork = (workData) => {
     if (workData.id) {
       if (workData.isRecurring) {
@@ -196,6 +215,7 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 保存會議
   const saveMeeting = (meetingData) => {
     if (meetingData.id) {
       setMeetings(meetings.map(m => m.id === meetingData.id ? meetingData : m));
@@ -207,72 +227,65 @@ export default function Home() {
     setPastedText('');
   };
 
-  const handleQuickAddMeeting = (text) => {
-    if (!text.trim()) return;
-    const dateMatch = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-    const dateObj = dateMatch ? parser.parseDate(dateMatch[0]) : { date: null };
-    
+  // 快速添加會議
+  const handleQuickAddMeeting = () => {
+    if (!meetingInput.trim()) return;
     const meeting = {
-      id: `meeting-${Date.now()}`,
-      title: text.split('\n')[0],
-      startDate: dateObj.date,
-      startTime: null,
-      endTime: null,
+      title: meetingInput.split('\n')[0],
+      startDate: '',
+      startTime: '',
+      endTime: '',
       location: '',
       chairman: '',
       password: '',
       link: '',
-      originalText: text,
-      createdAt: new Date().toISOString()
+      meetingNumber: '',
+      attendees: '',
+      originalText: meetingInput
     };
     setMeetings([...meetings, meeting]);
     setMeetingInput('');
   };
 
-  const handleQuickAddTodo = (text) => {
-    if (!text.trim()) return;
-    const dateMatch = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-    const dateObj = dateMatch ? parser.parseDate(dateMatch[0]) : { date: null };
-    
+  // 快速添加待辦
+  const handleQuickAddTodo = () => {
+    if (!todoInput.trim()) return;
     const work = {
-      id: `work-${Date.now()}`,
-      title: text.split('\n')[0],
-      dueDate: dateObj.date,
-      dueTime: null,
+      title: todoInput.split('\n')[0],
+      dueDate: '',
+      dueTime: '',
       contact: null,
       phone: null,
       isRecurring: false,
-      originalText: text,
-      createdAt: new Date().toISOString()
+      originalText: todoInput
     };
     setTodoWorks([...todoWorks, work]);
     setTodoInput('');
   };
 
-  const handleQuickAddRecurring = (text) => {
-    if (!text.trim()) return;
-    const dateMatch = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-    const dateObj = dateMatch ? parser.parseDate(dateMatch[0]) : { date: null };
-    
+  // 快速添加例行
+  const handleQuickAddRecurring = () => {
+    if (!recurringInput.trim()) return;
     const work = {
-      id: `work-${Date.now()}`,
-      title: text.split('\n')[0],
-      dueDate: dateObj.date,
-      dueTime: null,
+      title: recurringInput.split('\n')[0],
+      dueDate: '',
+      dueTime: '',
       contact: null,
       phone: null,
       isRecurring: true,
       frequency: 'daily',
-      originalText: text,
-      createdAt: new Date().toISOString()
+      originalText: recurringInput
     };
     setRecurringWorks([...recurringWorks, work]);
     setRecurringInput('');
   };
 
+  // 貼會議郵件（AI 識別）
   const handlePasteMeeting = async (text) => {
+    if (!text.trim()) return;
     setIsIdentifying(true);
-    const aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
     setIsIdentifying(false);
 
     if (aiResult) {
@@ -285,7 +298,8 @@ export default function Home() {
         chairman: aiResult['主持人名稱'] || '',
         password: aiResult['會議密碼'] || '',
         link: aiResult['會議連結'] || '',
-        meetingNumber: aiResult['會議編號'] || '',
+        meetingNumber: aiResult['會議識別碼'] || '',
+        attendees: aiResult['參加對象'] || '',
         originalText: text
       };
       openMeetingModal(meeting);
@@ -293,9 +307,12 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 貼工作郵件（AI 識別）
   const handlePasteTodo = async (text) => {
+    if (!text.trim()) return;
     setIsIdentifying(true);
-    const aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
     setIsIdentifying(false);
 
     if (aiResult) {
@@ -313,9 +330,12 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 貼例行工作郵件（AI 識別）
   const handlePasteRecurring = async (text) => {
+    if (!text.trim()) return;
     setIsIdentifying(true);
-    const aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
     setIsIdentifying(false);
 
     if (aiResult) {
@@ -334,6 +354,7 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 刪除
   const deleteWork = (id, isRecurring) => {
     if (isRecurring) {
       setRecurringWorks(recurringWorks.filter(w => w.id !== id));
@@ -346,6 +367,7 @@ export default function Home() {
     setMeetings(meetings.filter(m => m.id !== id));
   };
 
+  // 完成
   const completeWork = (id, isRecurring) => {
     if (isRecurring) {
       setRecurringWorks(recurringWorks.map(w => w.id === id ? { ...w, lastCompleted: new Date().toISOString() } : w));
@@ -354,6 +376,7 @@ export default function Home() {
     }
   };
 
+  // 月曆
   const renderCalendar = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -398,6 +421,7 @@ export default function Home() {
     );
   };
 
+  // 全部行程
   const renderAllSchedule = () => {
     const allItems = [];
     meetings.forEach(m => {
@@ -450,12 +474,15 @@ export default function Home() {
     );
   };
 
+  // 會議菜單
   const renderMeetings = () => {
     const sorted = [...meetings].sort((a, b) => {
       if (!a.startDate) return 1;
       if (!b.startDate) return -1;
       return new Date(a.startDate) - new Date(b.startDate);
     });
+
+    const handleAdd = () => handleQuickAddMeeting();
 
     return (
       <div className={styles.listContainer}>
@@ -466,19 +493,16 @@ export default function Home() {
             placeholder="快速輸入會議..."
             value={meetingInput}
             onChange={(e) => setMeetingInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleQuickAddMeeting(meetingInput);
-              }
-            }}
+            onKeyPress={(e) => { if (e.key === 'Enter') handleAdd(); }}
             className={styles.input}
           />
+          <button onClick={handleAdd} className={styles.addBtn}>➕</button>
           <button 
-            onClick={() => { setShowModal(true); setModalType('pasteModal'); }} 
+            onClick={() => { setPastedText(''); setShowModal(true); setModalType('pasteModal'); }} 
             className={styles.pasteBtn}
             disabled={isIdentifying}
           >
-            {isIdentifying ? '識別中...' : '📋 貼郵件'}
+            {isIdentifying ? '...' : '📋'}
           </button>
         </div>
 
@@ -491,7 +515,8 @@ export default function Home() {
               {m.startDate && <div className={styles.itemMeta}>📅 {m.startDate} {m.startTime || ''}</div>}
               {m.location && <div className={styles.itemMeta}>📍 {m.location}</div>}
               {m.chairman && <div className={styles.itemMeta}>主持：{m.chairman}</div>}
-              {m.password && <div className={styles.itemMeta}>密碼：{m.password}</div>}
+              {m.password && <div className={styles.itemMeta}>🔐 密碼：{m.password}</div>}
+              {m.meetingNumber && <div className={styles.itemMeta}>🆔 {m.meetingNumber}</div>}
               {m.link && <div className={styles.itemLink}><a href={m.link} target="_blank" rel="noopener noreferrer">🔗 會議連結</a></div>}
               <div className={styles.buttonGroup}>
                 <button onClick={() => openMeetingModal(m)} className={styles.viewBtn}>編輯</button>
@@ -504,6 +529,7 @@ export default function Home() {
     );
   };
 
+  // 待辦菜單
   const renderTodos = () => {
     const sorted = [...todoWorks]
       .filter(w => !w.completed)
@@ -512,6 +538,8 @@ export default function Home() {
         if (!b.dueDate) return -1;
         return new Date(a.dueDate) - new Date(b.dueDate);
       });
+
+    const handleAdd = () => handleQuickAddTodo();
 
     return (
       <div className={styles.listContainer}>
@@ -522,19 +550,16 @@ export default function Home() {
             placeholder="快速輸入工作..."
             value={todoInput}
             onChange={(e) => setTodoInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleQuickAddTodo(todoInput);
-              }
-            }}
+            onKeyPress={(e) => { if (e.key === 'Enter') handleAdd(); }}
             className={styles.input}
           />
+          <button onClick={handleAdd} className={styles.addBtn}>➕</button>
           <button 
-            onClick={() => { setShowModal(true); setModalType('pasteTodoModal'); }} 
+            onClick={() => { setPastedText(''); setShowModal(true); setModalType('pasteTodoModal'); }} 
             className={styles.pasteBtn}
             disabled={isIdentifying}
           >
-            {isIdentifying ? '識別中...' : '📋 貼郵件'}
+            {isIdentifying ? '...' : '📋'}
           </button>
         </div>
 
@@ -552,9 +577,6 @@ export default function Home() {
                 <button onClick={() => completeWork(w.id, false)} className={styles.completeBtn}>✓</button>
                 <button onClick={() => deleteWork(w.id, false)} className={styles.deleteBtn}>刪除</button>
               </div>
-              {w.originalText && w.originalText.length > 50 && (
-                <button onClick={() => setModalData({ ...w, showFullText: true })} className={styles.fullTextBtn}>查看原文</button>
-              )}
             </div>
           ))
         )}
@@ -562,12 +584,15 @@ export default function Home() {
     );
   };
 
+  // 例行菜單
   const renderRecurring = () => {
     const sorted = [...recurringWorks].sort((a, b) => {
       if (!a.dueDate) return 1;
       if (!b.dueDate) return -1;
       return new Date(a.dueDate) - new Date(b.dueDate);
     });
+
+    const handleAdd = () => handleQuickAddRecurring();
 
     return (
       <div className={styles.listContainer}>
@@ -578,19 +603,16 @@ export default function Home() {
             placeholder="快速輸入例行工作..."
             value={recurringInput}
             onChange={(e) => setRecurringInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleQuickAddRecurring(recurringInput);
-              }
-            }}
+            onKeyPress={(e) => { if (e.key === 'Enter') handleAdd(); }}
             className={styles.input}
           />
+          <button onClick={handleAdd} className={styles.addBtn}>➕</button>
           <button 
-            onClick={() => { setShowModal(true); setModalType('pasteRecurringModal'); }} 
+            onClick={() => { setPastedText(''); setShowModal(true); setModalType('pasteRecurringModal'); }} 
             className={styles.pasteBtn}
             disabled={isIdentifying}
           >
-            {isIdentifying ? '識別中...' : '📋 貼郵件'}
+            {isIdentifying ? '...' : '📋'}
           </button>
         </div>
 
@@ -616,6 +638,7 @@ export default function Home() {
     );
   };
 
+  // 工作表單
   const WorkForm = ({ work = null, onSave }) => {
     const [formData, setFormData] = useState(work || {
       title: '',
@@ -714,6 +737,7 @@ export default function Home() {
     );
   };
 
+  // 會議表單
   const MeetingForm = ({ meeting = null, onSave }) => {
     const [formData, setFormData] = useState(meeting || {
       title: '',
@@ -725,6 +749,7 @@ export default function Home() {
       password: '',
       link: '',
       meetingNumber: '',
+      attendees: '',
       originalText: ''
     });
 
@@ -799,12 +824,22 @@ export default function Home() {
           placeholder="https://..."
         />
 
-        <label>會議編號</label>
+        <label>會議識別碼</label>
         <input
           type="text"
           value={formData.meetingNumber}
           onChange={(e) => setFormData({ ...formData, meetingNumber: e.target.value })}
           className={styles.input}
+          placeholder="413 936 238 568 15"
+        />
+
+        <label>參加對象</label>
+        <textarea
+          value={formData.attendees}
+          onChange={(e) => setFormData({ ...formData, attendees: e.target.value })}
+          className={styles.input}
+          placeholder="請各單位務必指派..."
+          rows="3"
         />
 
         {formData.originalText && (
@@ -862,6 +897,7 @@ export default function Home() {
         {activeTab === 'recurring' && renderRecurring()}
       </main>
 
+      {/* 貼會議郵件 */}
       {showModal && modalType === 'pasteModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -895,6 +931,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 貼工作郵件 */}
       {showModal && modalType === 'pasteTodoModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -928,6 +965,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 貼例行工作郵件 */}
       {showModal && modalType === 'pasteRecurringModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -961,6 +999,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 編輯工作表單 */}
       {showModal && modalType === 'work' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -969,20 +1008,11 @@ export default function Home() {
         </div>
       )}
 
+      {/* 編輯會議表單 */}
       {showModal && modalType === 'meeting' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <MeetingForm meeting={modalData} onSave={saveMeeting} />
-          </div>
-        </div>
-      )}
-
-      {modalData?.showFullText && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>原始內容</h2>
-            <div className={styles.fullTextContent}>{modalData.originalText}</div>
-            <button onClick={() => setModalData(null)} className={styles.primaryBtn}>關閉</button>
           </div>
         </div>
       )}
