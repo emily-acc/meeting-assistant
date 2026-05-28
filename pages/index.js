@@ -110,7 +110,9 @@ export default function Home() {
   const [todoWorks, setTodoWorks] = useState([]);
   const [recurringWorks, setRecurringWorks] = useState([]);
   
-  const [quickInput, setQuickInput] = useState('');
+  const [meetingInput, setMeetingInput] = useState('');
+  const [todoInput, setTodoInput] = useState('');
+  const [recurringInput, setRecurringInput] = useState('');
   const [pastedText, setPastedText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -174,7 +176,26 @@ export default function Home() {
     setPastedText('');
   };
 
-  const handleQuickAdd = (text) => {
+  const handleQuickAddMeeting = (text) => {
+    if (!text.trim()) return;
+    const dateTime = parser.extractDateTimeFromText(text);
+    const meeting = {
+      id: `meeting-${Date.now()}`,
+      title: text,
+      startDate: dateTime.dates[0]?.parsed || null,
+      startTime: dateTime.times[0]?.parsed || null,
+      endTime: null,
+      location: '',
+      chairman: '',
+      password: '',
+      originalText: text,
+      createdAt: new Date().toISOString()
+    };
+    setMeetings([...meetings, meeting]);
+    setMeetingInput('');
+  };
+
+  const handleQuickAddTodo = (text) => {
     if (!text.trim()) return;
     const dateTime = parser.extractDateTimeFromText(text);
     const work = {
@@ -188,37 +209,24 @@ export default function Home() {
       createdAt: new Date().toISOString()
     };
     setTodoWorks([...todoWorks, work]);
-    setQuickInput('');
+    setTodoInput('');
   };
 
-  const identifyEmail = (text) => {
-    const isWorkEmail = !text.includes('會議') && !text.includes('開始') && !text.includes('標題');
-    
-    if (isWorkEmail) {
-      const dateTime = parser.extractDateTimeFromText(text);
-      const work = {
-        title: text.split('\n')[0],
-        dueDate: dateTime.dates[0]?.parsed || null,
-        dueTime: dateTime.times[0]?.parsed || null,
-        contact: null,
-        isRecurring: false,
-        originalText: text
-      };
-      openWorkModal(work);
-    } else {
-      const dateTime = parser.extractDateTimeFromText(text);
-      const meeting = {
-        title: text.split('\n')[0],
-        startDate: dateTime.dates[0]?.parsed || null,
-        startTime: dateTime.times[0]?.parsed || null,
-        endTime: null,
-        location: '',
-        chairman: '',
-        password: '',
-        originalText: text
-      };
-      openMeetingModal(meeting);
-    }
+  const handleQuickAddRecurring = (text) => {
+    if (!text.trim()) return;
+    const dateTime = parser.extractDateTimeFromText(text);
+    const work = {
+      id: `work-${Date.now()}`,
+      title: text,
+      dueDate: dateTime.dates[0]?.parsed || null,
+      dueTime: dateTime.times[0]?.parsed || null,
+      contact: null,
+      isRecurring: true,
+      originalText: text,
+      createdAt: new Date().toISOString()
+    };
+    setRecurringWorks([...recurringWorks, work]);
+    setRecurringInput('');
   };
 
   const deleteWork = (id, isRecurring) => {
@@ -346,6 +354,27 @@ export default function Home() {
     return (
       <div className={styles.listContainer}>
         <h2>📞 會議時程</h2>
+        <div className={styles.quickAddForm}>
+          <input
+            type="text"
+            placeholder="快速輸入會議..."
+            value={meetingInput}
+            onChange={(e) => setMeetingInput(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleQuickAddMeeting(meetingInput);
+              }
+            }}
+            className={styles.input}
+          />
+          <button 
+            onClick={() => { setModalType('meeting'); setShowModal(true); }} 
+            className={styles.pasteBtn}
+          >
+            📋 貼郵件
+          </button>
+        </div>
+
         {sorted.length === 0 ? (
           <p className={styles.empty}>無會議</p>
         ) : (
@@ -383,16 +412,21 @@ export default function Home() {
           <input
             type="text"
             placeholder="快速輸入工作..."
-            value={quickInput}
-            onChange={(e) => setQuickInput(e.target.value)}
+            value={todoInput}
+            onChange={(e) => setTodoInput(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                handleQuickAdd(quickInput);
+                handleQuickAddTodo(todoInput);
               }
             }}
             className={styles.input}
           />
-          <button onClick={() => { setModalType(null); setShowModal(true); }} className={styles.pasteBtn}>📋 貼郵件</button>
+          <button 
+            onClick={() => { setModalType('work'); setShowModal(true); }} 
+            className={styles.pasteBtn}
+          >
+            📋 貼郵件
+          </button>
         </div>
 
         {sorted.length === 0 ? (
@@ -428,6 +462,27 @@ export default function Home() {
     return (
       <div className={styles.listContainer}>
         <h2>♻️ 例行工作</h2>
+        <div className={styles.quickAddForm}>
+          <input
+            type="text"
+            placeholder="快速輸入例行工作..."
+            value={recurringInput}
+            onChange={(e) => setRecurringInput(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleQuickAddRecurring(recurringInput);
+              }
+            }}
+            className={styles.input}
+          />
+          <button 
+            onClick={() => { setModalType('work'); setModalData({ isRecurring: true }); setShowModal(true); }} 
+            className={styles.pasteBtn}
+          >
+            📋 貼郵件
+          </button>
+        </div>
+
         {sorted.length === 0 ? (
           <p className={styles.empty}>無例行工作</p>
         ) : (
@@ -650,38 +705,6 @@ export default function Home() {
         {activeTab === 'todos' && renderTodos()}
         {activeTab === 'recurring' && renderRecurring()}
       </main>
-
-      {showModal && !modalType && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>📋 貼郵件或添加工作</h2>
-            <textarea
-              className={styles.textarea}
-              placeholder="貼入郵件或會議邀請..."
-              value={pastedText}
-              onChange={(e) => setPastedText(e.target.value)}
-              rows="10"
-            />
-            <div className={styles.modalButtons}>
-              <button
-                className={styles.primaryBtn}
-                onClick={() => identifyEmail(pastedText)}
-              >
-                ✓ 識別
-              </button>
-              <button
-                className={styles.secondaryBtn}
-                onClick={() => {
-                  setShowModal(false);
-                  setPastedText('');
-                }}
-              >
-                ✕ 取消
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showModal && modalType === 'work' && (
         <div className={styles.modal}>
