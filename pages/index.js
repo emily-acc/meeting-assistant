@@ -73,7 +73,6 @@ ${text}`
 const enhanceIdentification = (aiResult, text) => {
   const result = aiResult || {};
 
-  // 識別連結
   if (!result['會議連結'] || result['會議連結'] === '') {
     const linkMatch = text.match(/(https:\/\/[^\s]+)/);
     if (linkMatch) {
@@ -81,7 +80,6 @@ const enhanceIdentification = (aiResult, text) => {
     }
   }
 
-  // 識別密碼
   if (!result['會議密碼'] || result['會議密碼'] === '') {
     const pwMatch = text.match(/[密碼password]+[：:]\s*([A-Za-z0-9]+)/i);
     if (pwMatch) {
@@ -89,7 +87,6 @@ const enhanceIdentification = (aiResult, text) => {
     }
   }
 
-  // 識別碼
   if (!result['會議識別碼'] || result['會議識別碼'] === '') {
     const idMatch = text.match(/[識別碼meeting\s]+[id]*[：:]\s*([0-9\s]+)/i);
     if (idMatch) {
@@ -425,15 +422,19 @@ export default function Home() {
   const renderAllSchedule = () => {
     const allItems = [];
     meetings.forEach(m => {
-      if (m.startDate) allItems.push({ type: 'meeting', data: m, date: m.startDate });
+      if (m.startDate) allItems.push({ type: 'meeting', data: m, date: m.startDate, time: m.startTime });
     });
     todoWorks.forEach(w => {
-      if (w.dueDate && !w.completed) allItems.push({ type: 'todo', data: w, date: w.dueDate });
+      if (w.dueDate && !w.completed) allItems.push({ type: 'todo', data: w, date: w.dueDate, time: w.dueTime });
     });
     recurringWorks.forEach(w => {
-      if (w.dueDate) allItems.push({ type: 'recurring', data: w, date: w.dueDate });
+      if (w.dueDate) allItems.push({ type: 'recurring', data: w, date: w.dueDate, time: w.dueTime });
     });
-    allItems.sort((a, b) => new Date(a.date) - new Date(b.date));
+    allItems.sort((a, b) => {
+      const dateCompare = new Date(a.date) - new Date(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.time || '').localeCompare(b.time || '');
+    });
 
     return (
       <div className={styles.scheduleContainer}>
@@ -444,26 +445,25 @@ export default function Home() {
             <p className={styles.empty}>無行程</p>
           ) : (
             allItems.map((item, idx) => (
-              <div key={idx} className={styles.itemCard}>
+              <div key={idx} className={styles.smallItemCard}>
                 {item.type === 'meeting' && (
                   <>
-                    <div className={styles.itemTitle}>📞 {item.data.title}</div>
-                    <div className={styles.itemMeta}>📅 {item.data.startDate} {item.data.startTime || ''}</div>
-                    {item.data.link && <div className={styles.itemLink}><a href={item.data.link} target="_blank" rel="noopener noreferrer">🔗 會議連結</a></div>}
-                    <button onClick={() => deleteMeeting(item.data.id)} className={styles.deleteBtn}>刪除</button>
+                    {item.time && <div className={styles.smallTime}>{item.time}</div>}
+                    <div className={styles.smallTitle}>📞 {item.data.title}</div>
+                    <div className={styles.smallMeta}>{item.date}</div>
+                    {item.data.link && <a href={item.data.link} target="_blank" rel="noopener noreferrer" className={styles.smallLink}>🔗</a>}
                   </>
                 )}
                 {item.type === 'todo' && (
                   <>
-                    <div className={styles.itemTitle}>📝 {item.data.title}</div>
-                    <div className={styles.itemMeta}>📅 {item.data.dueDate}</div>
-                    <button onClick={() => completeWork(item.data.id, false)} className={styles.completeBtn}>完成</button>
+                    <div className={styles.smallTitle}>📝 {item.data.title}</div>
+                    <div className={styles.smallMeta}>{item.date}</div>
                   </>
                 )}
                 {item.type === 'recurring' && (
                   <>
-                    <div className={styles.itemTitle}>♻️ {item.data.title}</div>
-                    <div className={styles.itemMeta}>📅 {item.data.dueDate}</div>
+                    <div className={styles.smallTitle}>♻️ {item.data.title}</div>
+                    <div className={styles.smallMeta}>{item.date}</div>
                   </>
                 )}
               </div>
@@ -479,14 +479,16 @@ export default function Home() {
     const sorted = [...meetings].sort((a, b) => {
       if (!a.startDate) return 1;
       if (!b.startDate) return -1;
-      return new Date(a.startDate) - new Date(b.startDate);
+      const dateCompare = new Date(a.startDate) - new Date(b.startDate);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.startTime || '').localeCompare(b.startTime || '');
     });
 
     const handleAdd = () => handleQuickAddMeeting();
 
     return (
       <div className={styles.listContainer}>
-        <h2>📞 會議時程</h2>
+        <h2>📞 會議時程 ({sorted.length})</h2>
         <div className={styles.quickAddForm}>
           <input
             type="text"
@@ -510,17 +512,55 @@ export default function Home() {
           <p className={styles.empty}>無會議</p>
         ) : (
           sorted.map(m => (
-            <div key={m.id} className={styles.itemCard}>
-              <div className={styles.itemTitle}>{m.title}</div>
-              {m.startDate && <div className={styles.itemMeta}>📅 {m.startDate} {m.startTime || ''}</div>}
-              {m.location && <div className={styles.itemMeta}>📍 {m.location}</div>}
-              {m.chairman && <div className={styles.itemMeta}>主持：{m.chairman}</div>}
-              {m.password && <div className={styles.itemMeta}>🔐 密碼：{m.password}</div>}
-              {m.meetingNumber && <div className={styles.itemMeta}>🆔 {m.meetingNumber}</div>}
-              {m.link && <div className={styles.itemLink}><a href={m.link} target="_blank" rel="noopener noreferrer">🔗 會議連結</a></div>}
-              <div className={styles.buttonGroup}>
-                <button onClick={() => openMeetingModal(m)} className={styles.viewBtn}>編輯</button>
-                <button onClick={() => deleteMeeting(m.id)} className={styles.deleteBtn}>刪除</button>
+            <div key={m.id} className={styles.meetingCard}>
+              <div className={styles.timeBlock}>
+                {m.startTime && <div className={styles.time}>{m.startTime}</div>}
+                {m.startDate && <div className={styles.date}>{m.startDate}</div>}
+              </div>
+
+              <div className={styles.contentBlock}>
+                <div className={styles.title}>{m.title}</div>
+                
+                <div className={styles.infoGrid}>
+                  {m.location && <div className={styles.info}>📍 {m.location}</div>}
+                  {m.meetingNumber && <div className={styles.info}>🆔 {m.meetingNumber}</div>}
+                  {m.password && <div className={styles.info}>🔐 {m.password}</div>}
+                  {m.chairman && <div className={styles.info}>👤 {m.chairman}</div>}
+                  {m.endTime && <div className={styles.info}>⏱️ 結束 {m.endTime}</div>}
+                </div>
+
+                {m.link && (
+                  <div className={styles.linkBlock}>
+                    <a href={m.link} target="_blank" rel="noopener noreferrer" className={styles.meetLink}>
+                      🔗 {m.link.length > 60 ? m.link.substring(0, 60) + '...' : m.link}
+                    </a>
+                  </div>
+                )}
+
+                {m.attendees && <div className={styles.info}>{m.attendees}</div>}
+
+                <div className={styles.actionButtons}>
+                  {m.link && (
+                    <button 
+                      onClick={() => window.open(m.link, '_blank')}
+                      className={styles.joinBtn}
+                    >
+                      加入
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => openMeetingModal(m)}
+                    className={styles.editBtn}
+                  >
+                    編輯
+                  </button>
+                  <button 
+                    onClick={() => deleteMeeting(m.id)}
+                    className={styles.deleteBtn}
+                  >
+                    刪除
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -543,7 +583,7 @@ export default function Home() {
 
     return (
       <div className={styles.listContainer}>
-        <h2>📝 待辦清單</h2>
+        <h2>📝 待辦清單 ({sorted.length})</h2>
         <div className={styles.quickAddForm}>
           <input
             type="text"
@@ -567,16 +607,19 @@ export default function Home() {
           <p className={styles.empty}>無待做工作</p>
         ) : (
           sorted.map(w => (
-            <div key={w.id} className={styles.itemCard}>
-              <div className={styles.itemTitle}>{w.title}</div>
-              {w.dueDate && <div className={styles.itemMeta}>📅 {w.dueDate} {w.dueTime ? `🕐 ${w.dueTime}` : ''}</div>}
-              {w.contact && <div className={styles.itemMeta}>👤 {w.contact}</div>}
-              {w.phone && <div className={styles.itemMeta}>📞 {w.phone}</div>}
-              <div className={styles.buttonGroup}>
-                <button onClick={() => openWorkModal(w)} className={styles.viewBtn}>編輯</button>
-                <button onClick={() => completeWork(w.id, false)} className={styles.completeBtn}>✓</button>
-                <button onClick={() => deleteWork(w.id, false)} className={styles.deleteBtn}>刪除</button>
+            <div key={w.id} className={styles.workCard}>
+              <div className={styles.workHeader}>
+                <div className={styles.title}>{w.title}</div>
+                <div className={styles.workActions}>
+                  <button onClick={() => completeWork(w.id, false)} className={styles.completeBtn}>✓</button>
+                  <button onClick={() => openWorkModal(w)} className={styles.editBtn}>✎</button>
+                  <button onClick={() => deleteWork(w.id, false)} className={styles.deleteBtn}>✕</button>
+                </div>
               </div>
+              
+              {w.dueDate && <div className={styles.info}>📅 {w.dueDate} {w.dueTime ? `${w.dueTime}` : ''}</div>}
+              {w.contact && <div className={styles.info}>👤 {w.contact}</div>}
+              {w.phone && <div className={styles.info}>📞 {w.phone}</div>}
             </div>
           ))
         )}
@@ -596,7 +639,7 @@ export default function Home() {
 
     return (
       <div className={styles.listContainer}>
-        <h2>♻️ 例行工作</h2>
+        <h2>♻️ 例行工作 ({sorted.length})</h2>
         <div className={styles.quickAddForm}>
           <input
             type="text"
@@ -620,17 +663,19 @@ export default function Home() {
           <p className={styles.empty}>無例行工作</p>
         ) : (
           sorted.map(w => (
-            <div key={w.id} className={styles.itemCard}>
-              <div className={styles.itemTitle}>{w.title}</div>
-              <div className={styles.itemMeta}>♻️ {frequencyText[w.frequency] || '每日'}</div>
-              {w.dueDate && <div className={styles.itemMeta}>📅 {w.dueDate} {w.dueTime ? `🕐 ${w.dueTime}` : ''}</div>}
-              {w.contact && <div className={styles.itemMeta}>👤 {w.contact}</div>}
-              {w.phone && <div className={styles.itemMeta}>📞 {w.phone}</div>}
-              <div className={styles.buttonGroup}>
-                <button onClick={() => openWorkModal(w)} className={styles.viewBtn}>編輯</button>
-                <button onClick={() => completeWork(w.id, true)} className={styles.completeBtn}>✓</button>
-                <button onClick={() => deleteWork(w.id, true)} className={styles.deleteBtn}>刪除</button>
+            <div key={w.id} className={styles.recurringCard}>
+              <div className={styles.workHeader}>
+                <div className={styles.title}>{w.title}</div>
+                <div className={styles.workActions}>
+                  <button onClick={() => completeWork(w.id, true)} className={styles.completeBtn}>✓</button>
+                  <button onClick={() => openWorkModal(w)} className={styles.editBtn}>✎</button>
+                  <button onClick={() => deleteWork(w.id, true)} className={styles.deleteBtn}>✕</button>
+                </div>
               </div>
+              
+              <div className={styles.info}>♻️ {frequencyText[w.frequency] || '每日'}</div>
+              {w.dueDate && <div className={styles.info}>📅 {w.dueDate}</div>}
+              {w.contact && <div className={styles.info}>👤 {w.contact}</div>}
             </div>
           ))
         )}
@@ -719,13 +764,6 @@ export default function Home() {
               <option value="monthly">每月</option>
               <option value="yearly">每年</option>
             </select>
-          </>
-        )}
-
-        {formData.originalText && (
-          <>
-            <label>原始內容</label>
-            <div className={styles.originalText}>{formData.originalText}</div>
           </>
         )}
 
@@ -830,7 +868,6 @@ export default function Home() {
           value={formData.meetingNumber}
           onChange={(e) => setFormData({ ...formData, meetingNumber: e.target.value })}
           className={styles.input}
-          placeholder="413 936 238 568 15"
         />
 
         <label>參加對象</label>
@@ -841,13 +878,6 @@ export default function Home() {
           placeholder="請各單位務必指派..."
           rows="3"
         />
-
-        {formData.originalText && (
-          <>
-            <label>原始內容</label>
-            <div className={styles.originalText}>{formData.originalText}</div>
-          </>
-        )}
 
         <div className={styles.formButtons}>
           <button onClick={() => onSave(formData)} className={styles.primaryBtn}>保存</button>
