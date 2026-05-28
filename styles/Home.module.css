@@ -1,523 +1,313 @@
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f5f7fa;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-/* 登入 */
-.loginContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-}
-
-.loginBox {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  text-align: center;
-  width: 100%;
-  max-width: 380px;
-}
-
-.loginBox h1 {
-  margin: 0 0 10px 0;
-  font-size: 28px;
-  color: #1a1a1a;
-}
-
-.loginBox p {
-  color: #666;
-  margin: 0 0 20px 0;
-  font-size: 14px;
-}
-
-.passwordInput {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-}
-
-.passwordInput:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
-}
-
-.error {
-  color: #e74c3c;
-  font-size: 13px;
-  margin-bottom: 15px;
-}
-
-.loginBtn {
-  width: 100%;
-  padding: 12px;
-  background: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.loginBtn:hover {
-  background: #1a2a38;
-}
-
-/* 頭部 */
 .header {
   background: white;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .header h1 {
   margin: 0;
   font-size: 24px;
-  color: #1a1a1a;
-}
-
-/* 菜單 */
-.menuBar {
-  display: flex;
-  gap: 8px;
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.menuBtn {
-  flex: 1;
-  padding: 10px 16px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.2s;
-}
-
-.menuBtn:hover {
-  background: #e8e8e8;
-}
-
-.menuBtn.active {
-  background: #2c3e50;
-  color: white;
-  border-color: #2c3e50;
-}
-
-/* 輸入框 */
-.inputSection {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: flex;
-  gap: 10px;
-}
-
-.largeInput {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  min-height: 45px;
-  resize: vertical;
-}
-
-.largeInput:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+  color: #333;
 }
 
 .addBtn {
-  padding: 10px 14px;
-  background: #2c3e50;
+  background: #4CAF50;
   color: white;
   border: none;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  align-self: flex-end;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.3s;
 }
 
 .addBtn:hover {
-  background: #1a2a38;
+  background: #45a049;
 }
 
-/* 內容區 */
-.contentSection {
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab {
+  padding: 10px 20px;
+  border: 2px solid #ddd;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 12px;
-  min-height: 500px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  color: #666;
 }
 
-/* 全部行程 */
-.allViewContainer {
+.tab:hover {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.tab.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.main {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.listContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.listContainer h2 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.scheduleContainer {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-height: 600px;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.calendarPanel {
-  border-right: 1px solid #eee;
-  padding-right: 12px;
-  overflow-y: auto;
-  max-height: 600px;
+.calendar {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 15px;
 }
 
-.monthNav {
+.calendarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.monthNav button {
-  padding: 6px 12px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  color: #333;
-  transition: all 0.2s;
-}
-
-.monthNav button:hover {
-  background: #e0e0e0;
-}
-
-.monthNav span {
-  font-size: 14px;
+  margin-bottom: 15px;
   font-weight: 600;
-  color: #1a1a1a;
+}
+
+.calendarHeader button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.calendarHeader button:hover {
+  background: #45a049;
 }
 
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
-.dayHeader {
+.weekday {
   text-align: center;
   font-weight: 600;
-  color: #2c3e50;
-  padding: 6px 0;
-  font-size: 11px;
-  background: #f5f5f5;
-  border-radius: 4px;
-}
-
-.emptyDay {
-  aspect-ratio: 1;
-  background: transparent;
+  color: #666;
+  padding: 8px 0;
+  font-size: 12px;
 }
 
 .calendarDay {
   aspect-ratio: 1;
-  padding: 4px;
-  border: 1px solid #e8e8e8;
-  border-radius: 4px;
-  background: white;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
   font-size: 12px;
-  position: relative;
+  background: white;
+  border: 1px solid #eee;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.calendarDay.hasDay {
+  color: #333;
+}
+
+.calendarDay.hasEvent {
+  background: #4CAF50;
+  color: white;
+  font-weight: 600;
 }
 
 .calendarDay:hover {
-  border-color: #2c3e50;
+  border-color: #4CAF50;
+}
+
+.listSection {
+  padding: 0 20px;
+}
+
+.listSection h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.itemCard {
   background: #f9f9f9;
-}
-
-.calendarDay.selected {
-  background: #fff3cd;
-  border-color: #f39c12;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(243, 156, 18, 0.3);
-}
-
-.dayNum {
-  font-size: 11px;
-  font-weight: 500;
-  color: #1a1a1a;
-  margin-bottom: 2px;
-}
-
-.dotsContainer {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-  min-height: 8px;
-}
-
-.dotMeeting {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: #0066cc;
-  border-radius: 50%;
-  margin: 0 1px;
-}
-
-.dotTask {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: #27ae60;
-  border-radius: 50%;
-  margin: 0 1px;
-}
-
-.listPanel {
-  padding-left: 12px;
-  overflow-y: auto;
-  max-height: 600px;
-}
-
-.listPanel h2 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #1a1a1a;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-.noData {
-  text-align: center;
-  color: #999;
-  padding: 40px 20px;
-  font-size: 13px;
-}
-
-.meetingsList {
+  border-left: 4px solid #4CAF50;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.meetingCard {
-  border-left: 3px solid #2c3e50;
-  border: 1px solid #e8e8e8;
-  border-left: 3px solid #2c3e50;
-  border-radius: 6px;
-  padding: 10px;
-  background: #f9f9f9;
-  transition: all 0.2s;
+.itemTitle {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
 }
 
-.meetingCard.meeting {
-  border-left-color: #0066cc;
+.itemMeta {
+  color: #666;
+  font-size: 14px;
 }
 
-.meetingCard.task {
-  border-left-color: #27ae60;
-}
-
-.meetingCard:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-color: #2c3e50;
-}
-
-.cardHeader {
+.buttonGroup {
   display: flex;
   gap: 8px;
-  margin-bottom: 6px;
-  align-items: flex-start;
-}
-
-.cardTime {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 12px;
-  min-width: 50px;
-}
-
-.cardTitle {
-  font-weight: 500;
-  color: #1a1a1a;
-  font-size: 13px;
-  flex: 1;
-}
-
-.cardInfo {
-  margin: 6px 0;
-}
-
-.detail {
-  font-size: 11px;
-  color: #666;
-  margin-bottom: 2px;
-  line-height: 1.3;
-  word-break: break-all;
-}
-
-.detail a {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-.detail a:hover {
-  text-decoration: underline;
-}
-
-.badge {
-  display: inline-block;
-  background: #e8f4f8;
-  color: #0c5460;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
   margin-top: 8px;
-  flex-wrap: wrap;
 }
 
-.actionBtn {
-  padding: 4px 8px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.completeBtn,
+.viewBtn,
+.deleteBtn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.completeBtn {
+  background: #4CAF50;
+  color: white;
+}
+
+.completeBtn:hover {
+  background: #45a049;
+}
+
+.viewBtn {
+  background: #2196F3;
+  color: white;
+  flex: 1;
+}
+
+.viewBtn:hover {
+  background: #0b7dda;
+}
+
+.deleteBtn {
+  background: #f44336;
+  color: white;
+  flex: 0.5;
+}
+
+.deleteBtn:hover {
+  background: #da190b;
+}
+
+.primaryBtn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.primaryBtn:hover {
+  background: #45a049;
+}
+
+.secondaryBtn {
+  background: #ddd;
   color: #333;
-  transition: all 0.2s;
-  flex: 1;
-  min-width: 50px;
-  text-align: center;
-}
-
-.actionBtn:hover {
-  background: #f0f0f0;
-}
-
-.delete {
-  border-color: #e74c3c;
-  color: #e74c3c;
-}
-
-.delete:hover {
-  background: #ffe5e5;
-}
-
-/* 編輯表單（卡片內） */
-.editForm {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.editInput {
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: inherit;
-}
-
-.editInput:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
-}
-
-.editSelect {
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: inherit;
-  background: white;
-  cursor: pointer;
-}
-
-.editSelect:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
-}
-
-.editActions {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.saveBtn {
-  padding: 6px 10px;
-  background: #27ae60;
-  color: white;
   border: none;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 11px;
-  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.3s;
 }
 
-.saveBtn:hover {
-  background: #229954;
+.secondaryBtn:hover {
+  background: #ccc;
 }
 
-.cancelBtn {
-  padding: 6px 10px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 11px;
-  flex: 1;
+.quickAddForm {
+  margin-bottom: 20px;
 }
 
-.cancelBtn:hover {
-  background: #c0392b;
+.input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
 }
 
-/* 模態框 */
-.modalOverlay {
+.input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -525,290 +315,169 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
 .modalContent {
   background: white;
   border-radius: 12px;
-  padding: 24px;
-  max-width: 500px;
+  padding: 30px;
+  max-width: 600px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .modalContent h2 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  color: #1a1a1a;
-}
-
-.modalForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.modalForm label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #1a1a1a;
-}
-
-.formInput {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-}
-
-.formInput:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
-}
-
-.formSelect {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  background: white;
-  cursor: pointer;
-}
-
-.formSelect:focus {
-  outline: none;
-  border-color: #2c3e50;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
-}
-
-/* 通知設置 */
-.notificationSettings {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 6px;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
+  margin-top: 0;
   color: #333;
-  cursor: pointer;
-  gap: 6px;
+  margin-bottom: 20px;
 }
 
-.checkboxLabel input {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
+.textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  transition: border-color 0.3s;
 }
 
-.checkboxLabel:hover {
-  color: #2c3e50;
+.textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
 }
 
-.modalActions {
+.modalButtons {
   display: flex;
   gap: 10px;
+  margin-top: 20px;
 }
 
-.modalSaveBtn {
+.modalButtons button {
   flex: 1;
-  padding: 10px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
 }
 
-.modalSaveBtn:hover {
-  background: #229954;
-}
-
-.modalCancelBtn {
-  flex: 1;
-  padding: 10px;
-  background: #95a5a6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.modalCancelBtn:hover {
-  background: #7f8c8d;
-}
-
-/* 通知彈窗 */
-.alertOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  pointer-events: none;
-  z-index: 2000;
-  padding-top: 20px;
-}
-
-.alertBox {
-  background: white;
+.detailText {
+  background: #f9f9f9;
+  padding: 15px;
   border-radius: 8px;
-  padding: 16px;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  pointer-events: auto;
-  animation: slideDown 0.3s ease-out;
-  position: relative;
-}
-
-.alertBox.alert-meeting {
-  border-left: 4px solid #0066cc;
-}
-
-.alertBox.alert-task {
-  border-left: 4px solid #27ae60;
-}
-
-.alertTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 6px;
-}
-
-.alertMessage {
-  font-size: 12px;
-  color: #666;
-  white-space: pre-wrap;
-  line-height: 1.4;
-  margin-bottom: 8px;
-}
-
-.alertClose {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.alertClose:hover {
+  border-left: 4px solid #4CAF50;
   color: #333;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 16px;
 }
 
-/* 響應式 */
-@media (max-width: 1024px) {
-  .allViewContainer {
-    grid-template-columns: 1fr;
-  }
-
-  .calendarPanel {
-    border-right: none;
-    border-bottom: 1px solid #eee;
-    padding-right: 0;
-    padding-bottom: 12px;
-    max-height: 400px;
-  }
-
-  .listPanel {
-    padding-left: 0;
-    padding-top: 12px;
-  }
-}
-
-@media (max-width: 640px) {
-  .container {
-    padding: 8px;
-  }
-
-  .inputSection {
+@media (max-width: 768px) {
+  .header {
     flex-direction: column;
+    gap: 15px;
+    text-align: center;
   }
 
-  .addBtn {
-    align-self: stretch;
+  .header h1 {
+    font-size: 20px;
   }
 
-  .contentSection {
-    min-height: auto;
-    padding: 8px;
+  .tabs {
+    flex-wrap: wrap;
   }
 
-  .allViewContainer {
+  .scheduleContainer {
     grid-template-columns: 1fr;
-    gap: 8px;
-    min-height: auto;
   }
 
-  .calendarPanel {
-    max-height: none;
-    padding-right: 0;
-    padding-bottom: 12px;
-  }
-
-  .listPanel {
-    max-height: none;
-    padding-left: 0;
-    padding-top: 12px;
+  .tab {
+    flex: 1;
+    min-width: 80px;
   }
 
   .calendarDay {
-    font-size: 10px;
-    min-height: 35px;
+    font-size: 11px;
   }
 
-  .dayNum {
-    font-size: 10px;
+  .itemCard {
+    padding: 12px;
   }
 
-  .monthNav span {
+  .buttonGroup {
+    flex-wrap: wrap;
+  }
+
+  .completeBtn,
+  .viewBtn {
+    flex: 1 1 45%;
+  }
+
+  .deleteBtn {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .header {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .tabs {
+    padding: 10px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .listContainer {
+    padding: 15px;
+  }
+
+  .itemTitle {
+    font-size: 14px;
+  }
+
+  .itemMeta {
+    font-size: 12px;
+  }
+
+  .completeBtn,
+  .viewBtn,
+  .deleteBtn {
+    padding: 5px 10px;
     font-size: 12px;
   }
 
   .modalContent {
-    max-width: 95%;
+    padding: 20px;
+    width: 95%;
   }
 
-  .alertBox {
-    margin: 10px;
-    max-width: calc(100% - 20px);
+  .textarea {
+    font-size: 13px;
   }
 }
