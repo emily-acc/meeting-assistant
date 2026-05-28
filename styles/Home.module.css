@@ -9,6 +9,7 @@
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans', sans-serif;
 }
 
 .header {
@@ -23,6 +24,7 @@
   margin: 0;
   font-size: 28px;
   font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .tabs {
@@ -45,6 +47,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 3px solid transparent;
+  white-space: nowrap;
 }
 
 .tab:hover {
@@ -173,105 +176,228 @@
   cursor: not-allowed;
 }
 
-/* 列表項 */
-.itemCard {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
+/* 會議卡片 */
+.meetingCard {
+  background: white;
+  border-left: 4px solid #2196F3;
   border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  padding: 0;
+  margin-bottom: 16px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
-.itemCard:hover {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+.meetingCard:hover {
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  border-left-color: #1976D2;
 }
 
-.itemTitle {
+.timeBlock {
+  background: #f5f5f5;
+  padding: 16px;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e0e0e0;
+  gap: 4px;
+}
+
+.time {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+}
+
+.date {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+}
+
+.contentBlock {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
   font-size: 16px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8px;
-  word-break: break-word;
+  margin-bottom: 4px;
 }
 
-.itemMeta {
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.info {
   font-size: 13px;
   color: #666;
-  margin-bottom: 6px;
   line-height: 1.4;
 }
 
-.itemLink {
-  margin: 10px 0;
-  padding: 8px 12px;
+.linkBlock {
   background: #e3f2fd;
+  padding: 8px 10px;
   border-radius: 6px;
-  display: inline-block;
+  margin: 6px 0;
 }
 
-.itemLink a {
+.meetLink {
   color: #2196F3;
   text-decoration: none;
-  word-break: break-all;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  word-break: break-all;
+  display: block;
 }
 
-.itemLink a:hover {
+.meetLink:hover {
   text-decoration: underline;
 }
 
-.buttonGroup {
+.actionButtons {
   display: flex;
   gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
 }
 
-.viewBtn,
-.completeBtn,
-.deleteBtn {
-  padding: 8px 12px;
+.joinBtn {
+  padding: 8px 14px;
+  background: #4CAF50;
+  color: white;
   border: none;
   border-radius: 6px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
   transition: all 0.3s ease;
   flex: 1;
-  min-width: 60px;
+  min-width: 70px;
 }
 
-.viewBtn {
-  background: #667eea;
-  color: white;
-}
-
-.viewBtn:hover {
-  background: #5568d3;
-  transform: translateY(-1px);
-}
-
-.completeBtn {
-  background: #4CAF50;
-  color: white;
-}
-
-.completeBtn:hover {
+.joinBtn:hover {
   background: #45a049;
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.editBtn {
+  padding: 8px 14px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 70px;
+}
+
+.editBtn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
 .deleteBtn {
+  padding: 8px 14px;
   background: #f44336;
   color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 70px;
 }
 
 .deleteBtn:hover {
   background: #d32f2f;
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+}
+
+.completeBtn {
+  padding: 8px 14px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 70px;
+}
+
+.completeBtn:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+/* 待辦卡片 */
+.workCard {
+  background: white;
+  border-left: 4px solid #FF9800;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.workCard:hover {
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  border-left-color: #F57C00;
+}
+
+.workHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.workActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 例行卡片 */
+.recurringCard {
+  background: white;
+  border-left: 4px solid #9C27B0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.recurringCard:hover {
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.2);
+  border-left-color: #7B1FA2;
 }
 
 .empty {
@@ -293,6 +419,7 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: fit-content;
 }
 
 .listSection {
@@ -389,6 +516,44 @@
   border-color: #667eea;
 }
 
+/* 全部行程小卡片 */
+.smallItemCard {
+  background: #f9f9f9;
+  border-left: 3px solid #667eea;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.smallItemCard:hover {
+  background: #f5f5f5;
+}
+
+.smallTime {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.smallTitle {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.smallMeta {
+  color: #999;
+  font-size: 11px;
+}
+
+.smallLink {
+  color: #2196F3;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
 /* 模態框 */
 .modal {
   position: fixed;
@@ -402,6 +567,18 @@
   justify-content: center;
   z-index: 1000;
   padding: 16px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modalContent {
@@ -533,36 +710,6 @@
   padding-right: 36px;
 }
 
-.originalText {
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 8px 0 16px 0;
-  max-height: 200px;
-  overflow-y: auto;
-  font-size: 13px;
-  color: #666;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.fullTextContent {
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  margin: 16px 0;
-  max-height: 400px;
-  overflow-y: auto;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
 .formButtons {
   display: flex;
   gap: 10px;
@@ -586,27 +733,6 @@
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* 完成按鈕特殊樣式 */
-.itemCard .completeBtn {
-  width: auto;
-}
-
-.fullTextBtn {
-  padding: 8px 12px;
-  background: #ff9800;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.3s ease;
-}
-
-.fullTextBtn:hover {
-  background: #f57c00;
 }
 
 /* 響應式設計 */
@@ -656,28 +782,45 @@
     min-width: 44px;
   }
 
-  .buttonGroup {
+  .meetingCard {
+    flex-direction: column;
+  }
+
+  .timeBlock {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    min-width: auto;
+    padding: 10px;
+  }
+
+  .contentBlock {
+    padding: 12px;
     gap: 6px;
   }
 
-  .viewBtn,
-  .completeBtn,
-  .deleteBtn {
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .actionButtons {
+    gap: 6px;
+  }
+
+  .joinBtn,
+  .editBtn,
+  .deleteBtn,
+  .completeBtn {
     padding: 7px 10px;
     font-size: 12px;
-    min-width: 50px;
+    min-width: 60px;
   }
 
-  .itemCard {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .itemTitle {
+  .title {
     font-size: 15px;
   }
 
-  .itemMeta {
+  .info {
     font-size: 12px;
   }
 
@@ -703,10 +846,6 @@
   .secondaryBtn {
     padding: 10px 20px;
     font-size: 13px;
-  }
-
-  .calendarDay {
-    font-size: 12px;
   }
 }
 
@@ -760,31 +899,74 @@
     font-size: 14px;
   }
 
-  .itemCard {
+  .meetingCard {
+    margin-bottom: 12px;
+    flex-direction: column;
+  }
+
+  .timeBlock {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    min-width: auto;
+    padding: 8px;
+  }
+
+  .time {
+    font-size: 16px;
+  }
+
+  .date {
+    font-size: 10px;
+  }
+
+  .contentBlock {
+    padding: 10px;
+    gap: 4px;
+  }
+
+  .title {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .info {
+    font-size: 11px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .actionButtons {
+    gap: 4px;
+  }
+
+  .joinBtn,
+  .editBtn,
+  .deleteBtn,
+  .completeBtn {
+    padding: 6px 8px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+
+  .workCard {
     padding: 10px;
     margin-bottom: 8px;
   }
 
-  .itemTitle {
-    font-size: 14px;
-    margin-bottom: 6px;
+  .workHeader {
+    gap: 8px;
   }
 
-  .itemMeta {
-    font-size: 11px;
-    margin-bottom: 4px;
-  }
-
-  .buttonGroup {
+  .workActions {
     gap: 4px;
   }
 
-  .viewBtn,
-  .completeBtn,
-  .deleteBtn {
-    padding: 6px 8px;
-    font-size: 11px;
-    flex: 1;
+  .recurringCard {
+    padding: 10px;
+    margin-bottom: 8px;
   }
 
   .modalContent {
@@ -835,11 +1017,40 @@
     padding: 6px 0;
   }
 
-  .originalText,
-  .fullTextContent {
-    padding: 10px;
+  .scheduleContainer {
+    gap: 12px;
+  }
+
+  .calendarSection {
+    padding: 12px;
+  }
+
+  .listSection {
+    padding: 12px;
+    max-height: 400px;
+  }
+
+  .listSection h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .smallItemCard {
+    padding: 8px 10px;
+    margin-bottom: 6px;
     font-size: 12px;
-    max-height: 150px;
+  }
+
+  .smallTime {
+    font-size: 12px;
+  }
+
+  .smallTitle {
+    font-size: 13px;
+  }
+
+  .smallMeta {
+    font-size: 10px;
   }
 }
 
@@ -886,10 +1097,8 @@
   }
 }
 
-.itemCard {
-  animation: fadeIn 0.3s ease;
-}
-
-.modal {
+.meetingCard,
+.workCard,
+.recurringCard {
   animation: fadeIn 0.3s ease;
 }
