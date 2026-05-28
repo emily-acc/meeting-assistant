@@ -10,9 +10,6 @@
   padding: 20px 30px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
   max-width: 1200px;
   margin-left: auto;
@@ -23,22 +20,6 @@
   margin: 0;
   font-size: 24px;
   color: #333;
-}
-
-.addBtn {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background 0.3s;
-}
-
-.addBtn:hover {
-  background: #45a049;
 }
 
 .tabs {
@@ -52,6 +33,7 @@
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
 }
 
 .tab {
@@ -104,6 +86,20 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendarSection {
+  flex: 0 0 300px;
+}
+
+.listSection {
+  flex: 1;
+}
+
+.listSection h3 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 15px;
 }
 
 .calendar {
@@ -178,15 +174,6 @@
   border-color: #4CAF50;
 }
 
-.listSection {
-  padding: 0 20px;
-}
-
-.listSection h3 {
-  margin-top: 0;
-  color: #333;
-}
-
 .itemCard {
   background: #f9f9f9;
   border-left: 4px solid #4CAF50;
@@ -206,7 +193,7 @@
 
 .itemMeta {
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .buttonGroup {
@@ -217,7 +204,8 @@
 
 .completeBtn,
 .viewBtn,
-.deleteBtn {
+.deleteBtn,
+.fullTextBtn {
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
@@ -240,7 +228,6 @@
 .viewBtn {
   background: #2196F3;
   color: white;
-  flex: 1;
 }
 
 .viewBtn:hover {
@@ -257,44 +244,24 @@
   background: #da190b;
 }
 
-.primaryBtn {
-  background: #4CAF50;
+.fullTextBtn {
+  background: #FF9800;
   color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background 0.3s;
+  width: 100%;
 }
 
-.primaryBtn:hover {
-  background: #45a049;
-}
-
-.secondaryBtn {
-  background: #ddd;
-  color: #333;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.secondaryBtn:hover {
-  background: #ccc;
+.fullTextBtn:hover {
+  background: #F57C00;
 }
 
 .quickAddForm {
+  display: flex;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
 .input {
-  width: 100%;
+  flex: 1;
   padding: 12px;
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -305,6 +272,21 @@
 .input:focus {
   outline: none;
   border-color: #4CAF50;
+}
+
+.pasteBtn {
+  padding: 12px 20px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s;
+}
+
+.pasteBtn:hover {
+  background: #0b7dda;
 }
 
 .modal {
@@ -337,6 +319,12 @@
   margin-bottom: 20px;
 }
 
+.modalContent h3 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 15px;
+}
+
 .textarea {
   width: 100%;
   padding: 12px;
@@ -363,11 +351,52 @@
   flex: 1;
 }
 
-.detailText {
-  background: #f9f9f9;
-  padding: 15px;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form label {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form input,
+.form select {
+  padding: 12px;
+  border: 2px solid #ddd;
   border-radius: 8px;
-  border-left: 4px solid #4CAF50;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form input:focus,
+.form select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.originalText {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #FF9800;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.fullTextContent {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
   color: #333;
   font-size: 14px;
   line-height: 1.6;
@@ -376,6 +405,46 @@
   max-height: 400px;
   overflow-y: auto;
   margin-bottom: 20px;
+}
+
+.formButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.primaryBtn {
+  flex: 1;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.primaryBtn:hover {
+  background: #45a049;
+}
+
+.secondaryBtn {
+  flex: 1;
+  background: #ddd;
+  color: #333;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.secondaryBtn:hover {
+  background: #ccc;
 }
 
 .empty {
@@ -387,9 +456,7 @@
 
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
+    padding: 15px;
   }
 
   .header h1 {
@@ -400,13 +467,14 @@
     flex-wrap: wrap;
   }
 
-  .scheduleContainer {
-    grid-template-columns: 1fr;
-  }
-
   .tab {
     flex: 1;
-    min-width: 80px;
+    min-width: 70px;
+    padding: 8px 12px;
+  }
+
+  .scheduleContainer {
+    grid-template-columns: 1fr;
   }
 
   .calendarDay {
@@ -415,6 +483,14 @@
 
   .itemCard {
     padding: 12px;
+  }
+
+  .quickAddForm {
+    flex-wrap: wrap;
+  }
+
+  .pasteBtn {
+    flex: 0 0 100%;
   }
 
   .buttonGroup {
@@ -427,7 +503,11 @@
   }
 
   .deleteBtn {
-    flex: 1 1 100%;
+    flex: 0 0 25%;
+  }
+
+  .fullTextBtn {
+    flex: 1;
   }
 }
 
@@ -437,7 +517,7 @@
   }
 
   .header {
-    padding: 15px;
+    padding: 12px;
   }
 
   .header h1 {
@@ -446,15 +526,22 @@
 
   .tabs {
     padding: 10px;
+    gap: 5px;
   }
 
   .tab {
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 12px;
+    min-width: 50px;
   }
 
   .listContainer {
     padding: 15px;
+  }
+
+  .modalContent {
+    padding: 20px;
+    width: 95%;
   }
 
   .itemTitle {
@@ -468,16 +555,17 @@
   .completeBtn,
   .viewBtn,
   .deleteBtn {
-    padding: 5px 10px;
+    padding: 5px 8px;
     font-size: 12px;
   }
 
-  .modalContent {
-    padding: 20px;
-    width: 95%;
+  .form input,
+  .form select {
+    font-size: 13px;
   }
 
-  .textarea {
-    font-size: 13px;
+  .primaryBtn,
+  .secondaryBtn {
+    padding: 10px 16px;
   }
 }
