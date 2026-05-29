@@ -1,151 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/Home.module.css';
 
-// 增強的本地識別模塊
-const enhancedTextParser = {
-  extractTitle: (text) => {
-    const patterns = [
-      /[主題标题][:：]\s*([^\n]+)/,
-      /^【([^\】]+)】/,
-    ];
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) return match[1].trim();
-    }
-    return text.split('\n')[0].trim();
-  },
-
-  extractDate: (text) => {
-    const patterns = [
-      /(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/,
-      /(\d{1,2})月\s*(\d{1,2})日(?=\s*[（\(]|[週周]|上|下|午)/,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        if (match.length === 4) {
-          const year = match[1];
-          const month = String(match[2]).padStart(2, '0');
-          const day = String(match[3]).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        } else if (match.length === 3) {
-          const year = new Date().getFullYear();
-          const month = String(match[1]).padStart(2, '0');
-          const day = String(match[2]).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-      }
-    }
-    return '';
-  },
-
-  extractTime: (text) => {
-    const patterns = [
-      { regex: /上午\s*(\d{1,2}):(\d{2})/, isAM: true },
-      { regex: /下午\s*(\d{1,2}):(\d{2})/, isAM: false },
-      { regex: /(\d{1,2}):(\d{2}):(\d{2})/, isTime: true },
-      { regex: /(\d{1,2}):(\d{2})(?!:)/, isTime: true },
-    ];
-
-    for (let item of patterns) {
-      const match = text.match(item.regex);
-      if (match) {
-        if (item.isAM !== undefined) {
-          let hour = parseInt(match[1]);
-          if (!item.isAM && hour !== 12) hour += 12;
-          if (item.isAM && hour === 12) hour = 0;
-          return `${String(hour).padStart(2, '0')}:${match[2]}`;
-        } else if (item.isTime) {
-          return `${String(match[1]).padStart(2, '0')}:${match[2]}`;
-        }
-      }
-    }
-    return '';
-  },
-
-  extractEndTime: (text) => {
-    const patterns = [
-      /–\s*(\d{1,2}):(\d{2})/,
-      /至\s*(\d{1,2}):(\d{2})/,
-      /\s*-\s*(\d{1,2}):(\d{2})/,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        return `${String(match[1]).padStart(2, '0')}:${match[2]}`;
-      }
-    }
-    return '';
-  },
-
-  extractPassword: (text) => {
-    const patterns = [
-      /[密碼password]+[：:]\s*([A-Za-z0-9]+)/i,
-      /密码\s*[:：]\s*([A-Za-z0-9]+)/i,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) return match[1].trim();
-    }
-    return '';
-  },
-
-  extractMeetingNumber: (text) => {
-    const patterns = [
-      /[號号码][:：]\s*([0-9]+)/,
-      /[識別碼meeting\s]+[id]*[：:]\s*([0-9\s]+)/i,
-      /会议号\s*[:：]\s*([0-9]+)/i,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        return match[1].replace(/\s/g, '').trim();
-      }
-    }
-    return '';
-  },
-
-  extractLink: (text) => {
-    const match = text.match(/(https:\/\/[^\s]+)/);
-    return match ? match[0].trim() : '';
-  },
-
-  extractLocation: (text) => {
-    const patterns = [
-      /[引擎类型][:：]\s*([^\n]+)/i,
-      /会议类型\s*[:：]\s*([^\n]+)/i,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) return match[1].trim();
-    }
-
-    if (text.match(/webex/i)) return 'Webex';
-    if (text.match(/teams|microsoft/i)) return 'Microsoft Teams';
-    if (text.match(/zoom/i)) return 'Zoom';
-    return '';
-  },
-
-  extractAttendees: (text) => {
-    const patterns = [
-      /[參参]加[對对]象[:：]\s*([^\n]+)/,
-      /參加者\s*[:：]\s*([^\n]+)/i,
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) return match[1].trim();
-    }
-    return '';
-  }
-};
-
-// Gemini AI 識別
+// Gemini AI 識別（改進版）
 const identifyWithAI = async (text, apiKey) => {
   try {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey, {
@@ -156,17 +12,25 @@ const identifyWithAI = async (text, apiKey) => {
           parts: [{
             text: `請精確分析這段會議邀請或工作郵件，按照以下格式提取信息（如果沒有則為空字符串）：
 
+【日期時間識別規則】
+- 如果寫「5月14日（週四）上午10:00–11:00」，應提取為：
+  開始日期: 2026-05-14
+  開始時間: 10:00
+  結束時間: 11:00
+- 所有日期統一為 YYYY-MM-DD 格式
+- 所有時間統一為 HH:MM 格式（24小時制）
+
 【會議信息】
-會議標題: 
+會議標題: (郵件標題或會議名稱)
 開始日期: (YYYY-MM-DD格式)
 開始時間: (HH:MM格式)
 結束時間: (HH:MM格式)
-會議地點: 
+會議地點: (實體地點或「線上」)
 主持人名稱: 
-會議密碼: 
-會議連結: (完整URL)
-會議識別碼: 
-參加對象: 
+會議密碼: (所有可能的密碼)
+會議連結: (完整的Teams/Webex/Zoom連結URL)
+會議識別碼: (會議號碼，去掉空格)
+參加對象: (參加者說明)
 
 【工作信息】
 工作標題: 
@@ -175,7 +39,12 @@ const identifyWithAI = async (text, apiKey) => {
 聯絡人名稱:
 聯絡人電話:
 
-回復格式：只回復JSON，不要其他文字。
+【分類】
+是否是會議: (true/false)
+是否是例行工作: (true/false)
+循環頻率: (如果是例行：daily/weekly/monthly/yearly，否則為空)
+
+回復格式：只回復JSON，不要markdown代碼塊或其他文字。
 
 郵件內容：
 ${text}`
@@ -191,6 +60,7 @@ ${text}`
       const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
       return JSON.parse(cleanContent);
     } catch (e) {
+      console.error('AI response:', content);
       return null;
     }
   } catch (error) {
@@ -199,19 +69,73 @@ ${text}`
   }
 };
 
+// 本地識別增強
 const enhanceIdentification = (aiResult, text) => {
   const result = aiResult || {};
+
   if (!result['會議連結'] || result['會議連結'] === '') {
-    result['會議連結'] = enhancedTextParser.extractLink(text);
+    const linkMatch = text.match(/(https:\/\/[^\s]+)/);
+    if (linkMatch) {
+      result['會議連結'] = linkMatch[0];
+    }
   }
+
   if (!result['會議密碼'] || result['會議密碼'] === '') {
-    result['會議密碼'] = enhancedTextParser.extractPassword(text);
+    const pwMatch = text.match(/[密碼password]+[：:]\s*([A-Za-z0-9]+)/i);
+    if (pwMatch) {
+      result['會議密碼'] = pwMatch[1];
+    }
   }
+
   if (!result['會議識別碼'] || result['會議識別碼'] === '') {
-    result['會議識別碼'] = enhancedTextParser.extractMeetingNumber(text);
+    const idMatch = text.match(/[識別碼meeting\s]+[id]*[：:]\s*([0-9\s]+)/i);
+    if (idMatch) {
+      result['會議識別碼'] = idMatch[1].replace(/\s/g, '');
+    }
   }
+
   return result;
 };
+
+// 日期時間識別
+class DateTimeParser {
+  constructor() {
+    this.currentYear = new Date().getFullYear();
+  }
+
+  isValidDate(year, month, day) {
+    if (month < 1 || month > 12) return false;
+    if (day < 1) return false;
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    if (isLeapYear && month === 2) daysInMonth[1] = 29;
+    return day <= daysInMonth[month - 1];
+  }
+
+  parseDate(dateStr) {
+    if (!dateStr) return { date: null, valid: false };
+    let year, month, day;
+
+    let match = dateStr.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (match) {
+      year = parseInt(match[1]);
+      month = parseInt(match[2]);
+      day = parseInt(match[3]);
+    } else if ((match = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})(?!\d)/))) {
+      month = parseInt(match[1]);
+      day = parseInt(match[2]);
+      year = this.currentYear;
+    } else {
+      return { date: null, valid: false };
+    }
+
+    if (!this.isValidDate(year, month, day)) return { date: null, valid: false };
+
+    const paddedMonth = String(month).padStart(2, '0');
+    const paddedDay = String(day).padStart(2, '0');
+    return { date: `${year}-${paddedMonth}-${paddedDay}`, valid: true };
+  }
+}
 
 // 主應用
 export default function Home() {
@@ -229,6 +153,7 @@ export default function Home() {
   const [modalData, setModalData] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isIdentifying, setIsIdentifying] = useState(false);
+  const [parser] = useState(new DateTimeParser());
 
   const GEMINI_API_KEY = 'AIzaSyBzgBpDj-8zY-TAzhnNjcZFarf18XoP0mw';
 
@@ -254,6 +179,7 @@ export default function Home() {
     localStorage.setItem('appData', JSON.stringify({ meetings, todoWorks, recurringWorks }));
   }, [meetings, todoWorks, recurringWorks]);
 
+  // 打開編輯表單
   const openWorkModal = (work = null) => {
     setModalType('work');
     setModalData(work);
@@ -266,6 +192,7 @@ export default function Home() {
     setShowModal(true);
   };
 
+  // 保存工作
   const saveWork = (workData) => {
     if (workData.id) {
       if (workData.isRecurring) {
@@ -285,6 +212,7 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 保存會議
   const saveMeeting = (meetingData) => {
     if (meetingData.id) {
       setMeetings(meetings.map(m => m.id === meetingData.id ? meetingData : m));
@@ -296,6 +224,7 @@ export default function Home() {
     setPastedText('');
   };
 
+  // 快速添加會議
   const handleQuickAddMeeting = () => {
     if (!meetingInput.trim()) return;
     const meeting = {
@@ -315,6 +244,7 @@ export default function Home() {
     setMeetingInput('');
   };
 
+  // 快速添加待辦
   const handleQuickAddTodo = () => {
     if (!todoInput.trim()) return;
     const work = {
@@ -330,6 +260,7 @@ export default function Home() {
     setTodoInput('');
   };
 
+  // 快速添加例行
   const handleQuickAddRecurring = () => {
     if (!recurringInput.trim()) return;
     const work = {
@@ -346,104 +277,81 @@ export default function Home() {
     setRecurringInput('');
   };
 
+  // 貼會議郵件（AI 識別）
   const handlePasteMeeting = async (text) => {
-    if (!text.trim()) {
-      alert('請貼入會議郵件');
-      return;
-    }
-
+    if (!text.trim()) return;
     setIsIdentifying(true);
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
+    setIsIdentifying(false);
 
-    try {
-      const localResult = {
-        title: enhancedTextParser.extractTitle(text),
-        startDate: enhancedTextParser.extractDate(text),
-        startTime: enhancedTextParser.extractTime(text),
-        endTime: enhancedTextParser.extractEndTime(text),
-        location: enhancedTextParser.extractLocation(text),
-        password: enhancedTextParser.extractPassword(text),
-        link: enhancedTextParser.extractLink(text),
-        meetingNumber: enhancedTextParser.extractMeetingNumber(text),
-        attendees: enhancedTextParser.extractAttendees(text),
-        chairman: ''
-      };
-
-      if (localResult.title || localResult.link) {
-        const meeting = { ...localResult, originalText: text };
-        openMeetingModal(meeting);
-        setPastedText('');
-        setIsIdentifying(false);
-        return;
-      }
-
-      let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
-      if (aiResult) {
-        aiResult = enhanceIdentification(aiResult, text);
-      }
-
+    if (aiResult) {
       const meeting = {
-        title: aiResult?.['會議標題'] || localResult.title,
-        startDate: aiResult?.['開始日期'] || localResult.startDate,
-        startTime: aiResult?.['開始時間'] || localResult.startTime,
-        endTime: aiResult?.['結束時間'] || localResult.endTime,
-        location: aiResult?.['會議地點'] || localResult.location,
-        chairman: aiResult?.['主持人名稱'] || '',
-        password: aiResult?.['會議密碼'] || localResult.password,
-        link: aiResult?.['會議連結'] || localResult.link,
-        meetingNumber: aiResult?.['會議識別碼'] || localResult.meetingNumber,
-        attendees: aiResult?.['參加對象'] || localResult.attendees,
+        title: aiResult['會議標題'] || text.split('\n')[0],
+        startDate: aiResult['開始日期'] || '',
+        startTime: aiResult['開始時間'] || '',
+        endTime: aiResult['結束時間'] || '',
+        location: aiResult['會議地點'] || '',
+        chairman: aiResult['主持人名稱'] || '',
+        password: aiResult['會議密碼'] || '',
+        link: aiResult['會議連結'] || '',
+        meetingNumber: aiResult['會議識別碼'] || '',
+        attendees: aiResult['參加對象'] || '',
         originalText: text
       };
-
       openMeetingModal(meeting);
-      setPastedText('');
-    } catch (error) {
-      console.error('識別失敗:', error);
-      alert('識別失敗，請手動填入');
-    } finally {
-      setIsIdentifying(false);
     }
+    setPastedText('');
   };
 
+  // 貼工作郵件（AI 識別）
   const handlePasteTodo = async (text) => {
     if (!text.trim()) return;
     setIsIdentifying(true);
-
-    const work = {
-      title: enhancedTextParser.extractTitle(text),
-      dueDate: enhancedTextParser.extractDate(text),
-      dueTime: enhancedTextParser.extractTime(text),
-      contact: '',
-      phone: '',
-      isRecurring: false,
-      originalText: text
-    };
-
-    openWorkModal(work);
-    setPastedText('');
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
     setIsIdentifying(false);
+
+    if (aiResult) {
+      const work = {
+        title: aiResult['工作標題'] || text.split('\n')[0],
+        dueDate: aiResult['截止日期'] || '',
+        dueTime: aiResult['截止時間'] || '',
+        contact: aiResult['聯絡人名稱'] || '',
+        phone: aiResult['聯絡人電話'] || '',
+        isRecurring: false,
+        originalText: text
+      };
+      openWorkModal(work);
+    }
+    setPastedText('');
   };
 
+  // 貼例行工作郵件（AI 識別）
   const handlePasteRecurring = async (text) => {
     if (!text.trim()) return;
     setIsIdentifying(true);
-
-    const work = {
-      title: enhancedTextParser.extractTitle(text),
-      dueDate: enhancedTextParser.extractDate(text),
-      dueTime: enhancedTextParser.extractTime(text),
-      contact: '',
-      phone: '',
-      isRecurring: true,
-      frequency: 'daily',
-      originalText: text
-    };
-
-    openWorkModal(work);
-    setPastedText('');
+    let aiResult = await identifyWithAI(text, GEMINI_API_KEY);
+    aiResult = enhanceIdentification(aiResult, text);
     setIsIdentifying(false);
+
+    if (aiResult) {
+      const work = {
+        title: aiResult['工作標題'] || text.split('\n')[0],
+        dueDate: aiResult['截止日期'] || '',
+        dueTime: aiResult['截止時間'] || '',
+        contact: aiResult['聯絡人名稱'] || '',
+        phone: aiResult['聯絡人電話'] || '',
+        isRecurring: true,
+        frequency: aiResult['循環頻率'] || 'daily',
+        originalText: text
+      };
+      openWorkModal(work);
+    }
+    setPastedText('');
   };
 
+  // 刪除
   const deleteWork = (id, isRecurring) => {
     if (isRecurring) {
       setRecurringWorks(recurringWorks.filter(w => w.id !== id));
@@ -456,6 +364,7 @@ export default function Home() {
     setMeetings(meetings.filter(m => m.id !== id));
   };
 
+  // 完成
   const completeWork = (id, isRecurring) => {
     if (isRecurring) {
       setRecurringWorks(recurringWorks.map(w => w.id === id ? { ...w, lastCompleted: new Date().toISOString() } : w));
@@ -464,6 +373,7 @@ export default function Home() {
     }
   };
 
+  // 月曆
   const renderCalendar = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -508,6 +418,7 @@ export default function Home() {
     );
   };
 
+  // 全部行程
   const renderAllSchedule = () => {
     const allItems = [];
     meetings.forEach(m => {
@@ -563,6 +474,7 @@ export default function Home() {
     );
   };
 
+  // 會議菜單
   const renderMeetings = () => {
     const sorted = [...meetings].sort((a, b) => {
       if (!a.startDate) return 1;
@@ -614,7 +526,7 @@ export default function Home() {
                   {m.meetingNumber && <div className={styles.info}>🆔 {m.meetingNumber}</div>}
                   {m.password && <div className={styles.info}>🔐 {m.password}</div>}
                   {m.chairman && <div className={styles.info}>👤 {m.chairman}</div>}
-                  {m.endTime && <div className={styles.info}>⏱️ {m.endTime}</div>}
+                  {m.endTime && <div className={styles.info}>⏱️ 結束 {m.endTime}</div>}
                 </div>
 
                 {m.link && (
@@ -657,6 +569,7 @@ export default function Home() {
     );
   };
 
+  // 待辦菜單
   const renderTodos = () => {
     const sorted = [...todoWorks]
       .filter(w => !w.completed)
@@ -714,6 +627,7 @@ export default function Home() {
     );
   };
 
+  // 例行菜單
   const renderRecurring = () => {
     const sorted = [...recurringWorks].sort((a, b) => {
       if (!a.dueDate) return 1;
@@ -769,6 +683,7 @@ export default function Home() {
     );
   };
 
+  // 工作表單
   const WorkForm = ({ work = null, onSave }) => {
     const [formData, setFormData] = useState(work || {
       title: '',
@@ -860,6 +775,7 @@ export default function Home() {
     );
   };
 
+  // 會議表單
   const MeetingForm = ({ meeting = null, onSave }) => {
     const [formData, setFormData] = useState(meeting || {
       title: '',
@@ -1011,6 +927,7 @@ export default function Home() {
         {activeTab === 'recurring' && renderRecurring()}
       </main>
 
+      {/* 貼會議郵件 */}
       {showModal && modalType === 'pasteModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -1044,6 +961,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 貼工作郵件 */}
       {showModal && modalType === 'pasteTodoModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -1077,6 +995,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 貼例行工作郵件 */}
       {showModal && modalType === 'pasteRecurringModal' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -1110,6 +1029,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 編輯工作表單 */}
       {showModal && modalType === 'work' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -1118,6 +1038,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 編輯會議表單 */}
       {showModal && modalType === 'meeting' && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
