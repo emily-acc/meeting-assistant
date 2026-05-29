@@ -1,433 +1,704 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../styles/Home.module.css';
 
-const enhancedTextParser = {
-  extractTitle: (text) => {
-    const patterns = [
-      /[主題题][:：]\s*([^\n]+)/,
-      /^【([^\】]+)】/m,
-    ];
-    for (let p of patterns) {
-      const m = text.match(p);
-      if (m) {
-        const title = m[1].trim();
-        if (title && title.length > 1) return title;
-      }
-    }
-    return text.split('\n')[0]?.trim() || '';
-  },
-
-  extractDate: (text) => {
-    let m = text.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
-    if (m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-    m = text.match(/(\d{1,2})月\s*(\d{1,2})日/);
-    if (m) {
-      const y = new Date().getFullYear();
-      return `${y}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
-    }
-    return '';
-  },
-
-  extractTime: (text) => {
-    let m = text.match(/(\d{1,2}):(\d{2}):(\d{2})/);
-    if (m) return `${String(m[1]).padStart(2,'0')}:${m[2]}`;
-    m = text.match(/上午\s*(\d{1,2}):(\d{2})/i);
-    if (m) {
-      let h = parseInt(m[1]);
-      if (h === 12) h = 0;
-      return `${String(h).padStart(2,'0')}:${m[2]}`;
-    }
-    m = text.match(/下午\s*(\d{1,2}):(\d{2})/i);
-    if (m) {
-      let h = parseInt(m[1]);
-      if (h !== 12) h += 12;
-      return `${String(h).padStart(2,'0')}:${m[2]}`;
-    }
-    m = text.match(/(\d{1,2}):(\d{2})(?!:)/);
-    if (m) return `${String(m[1]).padStart(2,'0')}:${m[2]}`;
-    return '';
-  },
-
-  extractEndTime: (text) => {
-    const m = text.match(/[~–\-至]\s*(\d{1,2}):(\d{2})/);
-    if (m) return `${String(m[1]).padStart(2,'0')}:${m[2]}`;
-    return '';
-  },
-
-  extractPassword: (text) => {
-    const m = text.match(/[密碼码][:：]\s*([A-Za-z0-9]+)/i);
-    return m ? m[1].trim() : '';
-  },
-
-  extractMeetingNumber: (text) => {
-    let m = text.match(/[号碼码號][:：]\s*([0-9\s]+)/i);
-    if (m) return m[1].replace(/\s/g,'').trim();
-    return '';
-  },
-
-  extractLink: (text) => {
-    const m = text.match(/(https?:\/\/[^\s\n]+)/);
-    return m ? m[0].trim() : '';
-  },
-
-  extractLocation: (text) => {
-    if (/webex/i.test(text)) return 'Webex';
-    if (/teams|microsoft/i.test(text)) return 'Microsoft Teams';
-    if (/zoom/i.test(text)) return 'Zoom';
-    return '';
-  },
-
-  extractAttendees: (text) => {
-    const m = text.match(/[參参]加[對对象][:：]\s*([^\n]+)/);
-    return m ? m[1].trim() : '';
-  },
-
-  extractChairman: (text) => {
-    const patterns = [
-      /[主持人][:：]\s*([^\n]+)/,
-      /[組織單位][:：]\s*([^\n]+)/,
-    ];
-    for (let p of patterns) {
-      const m = text.match(p);
-      if (m) return m[1].trim();
-    }
-    return '';
-  }
-};
-
-// 待辦編輯表單
-const TodoForm = ({ todo, onSave, onClose }) => {
-  const [formData, setFormData] = useState(todo || {
-    title: '', dueDate: '', dueTime: '', contact: '', phone: '', description: ''
-  });
-
-  return (
-    <div className={styles.form}>
-      <h3>{todo?.id ? '編輯待辦' : '新增待辦'}</h3>
-      <label>標題</label>
-      <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className={styles.input} />
-      <label>截止日期</label>
-      <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} className={styles.input} />
-      <label>截止時間</label>
-      <input type="text" placeholder="HH:MM" value={formData.dueTime} onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })} className={styles.input} />
-      <label>聯絡人</label>
-      <input type="text" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} className={styles.input} />
-      <label>聯絡電話</label>
-      <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className={styles.input} />
-      <label>工作說明</label>
-      <textarea value={formData.description} rows="4" onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={styles.input} placeholder="貼入原文或工作說明..." />
-      <div className={styles.formButtons}>
-        <button onClick={() => onSave(formData)} className={styles.primaryBtn}>保存</button>
-        <button onClick={onClose} className={styles.secondaryBtn}>取消</button>
-      </div>
-    </div>
-  );
-};
-
-// 會議編輯表單
-const MeetingForm = ({ meeting, onSave, onClose }) => {
-  const [formData, setFormData] = useState(meeting || {
-    title: '', startDate: '', startTime: '', endTime: '',
-    location: '', chairman: '', password: '', link: '',
-    meetingNumber: '', attendees: ''
-  });
-
-  return (
-    <div className={styles.form}>
-      <h3>{meeting?.id ? '編輯會議' : '新增會議'}</h3>
-      <label>標題</label>
-      <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className={styles.input} />
-      <label>開始日期</label>
-      <input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className={styles.input} />
-      <label>開始時間</label>
-      <input type="text" placeholder="HH:MM" value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className={styles.input} />
-      <label>結束時間</label>
-      <input type="text" placeholder="HH:MM" value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className={styles.input} />
-      <label>地點</label>
-      <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className={styles.input} />
-      <label>主持人</label>
-      <input type="text" value={formData.chairman} onChange={(e) => setFormData({ ...formData, chairman: e.target.value })} className={styles.input} />
-      <label>密碼</label>
-      <input type="text" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className={styles.input} />
-      <label>會議連結</label>
-      <input type="text" value={formData.link} onChange={(e) => setFormData({ ...formData, link: e.target.value })} className={styles.input} />
-      <label>會議識別碼</label>
-      <input type="text" value={formData.meetingNumber} onChange={(e) => setFormData({ ...formData, meetingNumber: e.target.value })} className={styles.input} />
-      <label>參加對象</label>
-      <textarea value={formData.attendees} rows="3" onChange={(e) => setFormData({ ...formData, attendees: e.target.value })} className={styles.input} />
-      <div className={styles.formButtons}>
-        <button onClick={() => onSave(formData)} className={styles.primaryBtn}>保存</button>
-        <button onClick={onClose} className={styles.secondaryBtn}>取消</button>
-      </div>
-    </div>
-  );
-};
-
-// 主應用
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('meetings');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  
   const [meetings, setMeetings] = useState([]);
-  const [todos, setTodos] = useState([]);
-  const [todoInput, setTodoInput] = useState('');
-  const [pastedText, setPastedText] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(null);
-  const [modalData, setModalData] = useState(null);
+  const [inputText, setInputText] = useState('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [viewType, setViewType] = useState('all');
+  
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
-  useEffect(() => {
-    const saved = localStorage.getItem('appData');
-    if (saved) {
-      const data = JSON.parse(saved);
-      setMeetings(data.meetings || []);
-      setTodos(data.todos || []);
+  // 登入
+  const handleLogin = () => {
+    if (password === '123') {
+      setIsLoggedIn(true);
+      setPasswordError('');
+      localStorage.setItem('loggedIn', 'true');
+    } else {
+      setPasswordError('密碼錯誤');
     }
+  };
+
+  // 載入數據
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('loggedIn');
+    if (loggedIn) setIsLoggedIn(true);
+    
+    const savedMeetings = localStorage.getItem('meetings');
+    if (savedMeetings) setMeetings(JSON.parse(savedMeetings));
   }, []);
 
+  // 保存數據
   useEffect(() => {
-    localStorage.setItem('appData', JSON.stringify({ meetings, todos }));
-  }, [meetings, todos]);
+    localStorage.setItem('meetings', JSON.stringify(meetings));
+  }, [meetings]);
 
-  const closeModal = () => {
-    setShowModal(false);
-    setModalType(null);
-    setModalData(null);
-    setPastedText('');
-  };
+  // 識別會議/工作項目
+  const parseMeetingText = (text) => {
+    const meeting = {
+      id: Date.now(),
+      title: '',
+      subject: '',
+      startTime: '',
+      endTime: '',
+      date: new Date().toISOString().split('T')[0],
+      platform: '',
+      link: '',
+      organizer: '',
+      password: '',
+      hostPassword: '',
+      location: '',
+      phone: '',
+      duration: '',
+      type: 'meeting',
+      notes: text
+    };
 
-  const saveTodo = (todoData) => {
-    if (todoData.id) {
-      setTodos(todos.map(w => w.id === todoData.id ? todoData : w));
+    // 判斷類型（面試 → meeting，財稅報等 → task）
+    const isInterview = text.includes('面試') || text.includes('面试');
+    const isTask = (text.includes('財稅報') || text.includes('审核') || text.includes('提交') || text.includes('填寫')) && !isInterview;
+    
+    if (isTask) {
+      meeting.type = 'task';
     } else {
-      const newTodo = { ...todoData, id: `todo-${Date.now()}`, createdAt: new Date().toISOString() };
-      setTodos([...todos, newTodo]);
+      meeting.type = 'meeting';
     }
-    closeModal();
-  };
 
-  const saveMeeting = (meetingData) => {
-    if (meetingData.id) {
-      setMeetings(meetings.map(m => m.id === meetingData.id ? meetingData : m));
+    // 提取主題（優先級最高）
+    const subjectMatch = text.match(/主題[：:]\s*(.+?)[\n$]|主题[：:]\s*(.+?)[\n$]/);
+    if (subjectMatch) {
+      meeting.subject = subjectMatch[1] || subjectMatch[2];
+      meeting.title = meeting.subject;
+    }
+
+    // 提取標題
+    const titleMatch = text.match(/【(.+?)】|標題[：:]\s*(.+?)[\n$]|^([^【\n：:]{2,40}?)[\n【時間日期]/m);
+    if (titleMatch && !meeting.subject) {
+      meeting.title = titleMatch[1] || titleMatch[2] || titleMatch[3];
+    }
+
+    // 如果還沒有標題，根據內容推斷
+    if (!meeting.title) {
+      if (isInterview) {
+        const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
+        meeting.title = nameMatch ? nameMatch[1] + '面試' : '面試';
+      } else if (text.includes('財稅報')) {
+        meeting.title = '法人財稅報';
+      } else if (text.includes('會議')) {
+        const titleMatch2 = text.match(/(.{2,20}?)會議/);
+        meeting.title = titleMatch2 ? titleMatch2[1] + '會議' : '會議';
+      } else {
+        meeting.title = '新會議';
+      }
+    }
+
+    // 提取人名（面試對象或主持人）
+    const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
+    if (nameMatch && isInterview && !meeting.title.includes(nameMatch[1])) {
+      meeting.organizer = nameMatch[1];
+    }
+
+    // 提取地點
+    const locationMatch = text.match(/到(\S+?)[廠場室間區]|地點[：:]\s*([^\n]+)|永寧/);
+    if (locationMatch) {
+      meeting.location = locationMatch[1] ? locationMatch[1] + (locationMatch[2] || '') : (locationMatch[2] || '永寧廠');
+    }
+
+    // 提取時間（支持多種格式）
+    const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
+    }
+
+    // 提取時長
+    const durationMatch = text.match(/時長[：:]\s*(.+?)[\n$]|时长[：:]\s*(.+?)[\n$]/);
+    if (durationMatch) {
+      meeting.duration = durationMatch[1] || durationMatch[2];
+    }
+
+    // 提取日期（支持多種格式）
+    const dateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})[\/年](\d{1,2})/);
+    if (dateMatch) {
+      if (dateMatch[1]) {
+        meeting.date = `${dateMatch[1]}-${String(dateMatch[2]).padStart(2, '0')}-${String(dateMatch[3]).padStart(2, '0')}`;
+      } else if (dateMatch[4] && dateMatch[5]) {
+        const month = String(dateMatch[4]).padStart(2, '0');
+        const day = String(dateMatch[5]).padStart(2, '0');
+        const year = new Date().getFullYear();
+        meeting.date = `${year}-${month}-${day}`;
+      }
     } else {
-      const newMeeting = { ...meetingData, id: `meeting-${Date.now()}`, createdAt: new Date().toISOString() };
-      setMeetings([...meetings, newMeeting]);
+      const relativeMatch = text.match(/下週([一二三四五六日])|明天|後天|今天/);
+      if (relativeMatch) {
+        const today = new Date();
+        let targetDate = new Date(today);
+        
+        if (relativeMatch[0] === '明天') {
+          targetDate.setDate(today.getDate() + 1);
+        } else if (relativeMatch[0] === '後天') {
+          targetDate.setDate(today.getDate() + 2);
+        } else if (relativeMatch[1]) {
+          const dayMap = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 0 };
+          const targetDay = dayMap[relativeMatch[1]];
+          const daysUntilTarget = (targetDay - today.getDay() + 7) % 7 || 7;
+          targetDate.setDate(today.getDate() + 7 + daysUntilTarget);
+        }
+        
+        meeting.date = targetDate.toISOString().split('T')[0];
+      }
     }
-    closeModal();
+
+    // 提取平台
+    if (text.includes('Webex') || text.includes('webex')) meeting.platform = 'Webex';
+    else if (text.includes('Teams') || text.includes('teams')) meeting.platform = 'Teams';
+    else if (text.includes('Zoom') || text.includes('zoom')) meeting.platform = 'Zoom';
+    else if (text.includes('Google Meet')) meeting.platform = 'Google Meet';
+    else if (text.includes('104')) meeting.platform = '104';
+    else if (isInterview) meeting.platform = '面試';
+    else if (isTask) meeting.platform = '工作';
+
+    // 提取鏈接
+    const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
+    if (linkMatch) meeting.link = linkMatch[1];
+
+    // 提取會議號碼/號码
+    const numberMatch = text.match(/號碼[：:]\s*(\d+)|号码[：:]\s*(\d+)/);
+    if (numberMatch) {
+      meeting.password = numberMatch[1] || numberMatch[2];
+    }
+
+    // 提取組織者/主持人（包含部門和電話）
+    const orgMatch = text.match(/主持人[：:]\s*([^\n]+)|主席[：:]\s*([^\n]+)|寄件人[：:]\s*([^\n]+)|([A-Za-z\s\.]+\s[\u4e00-\u9fff]{2,4})/);
+    if (orgMatch) {
+      meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3] || orgMatch[4];
+    }
+
+    // 提取電話號碼
+    const phoneMatch = text.match(/O\s*\+(\d{3}\.\d{1,2}\.\d{4,5}\.\d{4,5})|Ext\.\d+|電話[：:]\s*(\+[\d\.\-\s]+)|集團內分機[：:]\s*(\(.+?\)[\d]+)/);
+    if (phoneMatch) {
+      meeting.phone = phoneMatch[1] || phoneMatch[2] || phoneMatch[3] || '';
+    }
+
+    // 提取會議密碼
+    const pwMatch = text.match(/密碼[：:]\s*([^\n\s]+)|密码[：:]\s*([^\n\s]+)/);
+    if (pwMatch) meeting.password = pwMatch[1] || pwMatch[2];
+
+    // 提取主持人密碼
+    const hostPwMatch = text.match(/主持人密碼[：:]\s*([^\n\s]+)|主持人號碼[：:]\s*([^\n\s]+)|主持人[密码][：:]\s*([^\n\s]+)/);
+    if (hostPwMatch) meeting.hostPassword = hostPwMatch[1] || hostPwMatch[2] || hostPwMatch[3];
+
+    return meeting;
   };
 
-  const handleQuickAddTodo = () => {
-    if (!todoInput.trim()) return;
-    const text = todoInput;
-    const result = {
-      title: enhancedTextParser.extractTitle(text),
-      dueDate: enhancedTextParser.extractDate(text),
-      dueTime: enhancedTextParser.extractTime(text),
-      contact: '', phone: '',
-      description: text
-    };
-    setTodos([...todos, { ...result, id: `todo-${Date.now()}`, createdAt: new Date().toISOString() }]);
-    setTodoInput('');
+  // 添加會議
+  const handleAddMeeting = () => {
+    if (!inputText.trim()) {
+      alert('請貼入會議信息');
+      return;
+    }
+
+    const meeting = parseMeetingText(inputText);
+    
+    // 根據當前菜單決定類型
+    if (viewType === 'meeting') {
+      meeting.type = 'meeting';
+    } else if (viewType === 'task') {
+      meeting.type = 'task';
+    } else {
+      // all 模式下預設為 meeting
+      meeting.type = 'meeting';
+    }
+
+    setMeetings([...meetings, meeting]);
+    setInputText('');
+    alert(`✅ 已添加：${meeting.title}`);
   };
 
-  const handlePasteMeeting = (text) => {
-    if (!text.trim()) { alert('請貼入會議郵件'); return; }
-    const result = {
-      title: enhancedTextParser.extractTitle(text),
-      startDate: enhancedTextParser.extractDate(text),
-      startTime: enhancedTextParser.extractTime(text),
-      endTime: enhancedTextParser.extractEndTime(text),
-      location: enhancedTextParser.extractLocation(text),
-      password: enhancedTextParser.extractPassword(text),
-      link: enhancedTextParser.extractLink(text),
-      meetingNumber: enhancedTextParser.extractMeetingNumber(text),
-      attendees: enhancedTextParser.extractAttendees(text),
-      chairman: enhancedTextParser.extractChairman(text)
-    };
-    setMeetings([...meetings, { ...result, id: `meeting-${Date.now()}`, createdAt: new Date().toISOString() }]);
-    closeModal();
+  // 編輯會議
+  const handleEditStart = (meeting) => {
+    setEditingId(meeting.id);
+    setEditForm({ ...meeting });
   };
 
-  const handlePasteTodo = (text) => {
-    if (!text.trim()) { alert('請貼入待辦郵件'); return; }
-    const result = {
-      title: enhancedTextParser.extractTitle(text),
-      dueDate: enhancedTextParser.extractDate(text),
-      dueTime: enhancedTextParser.extractTime(text),
-      contact: '', phone: '',
-      description: text
-    };
-    setTodos([...todos, { ...result, id: `todo-${Date.now()}`, createdAt: new Date().toISOString() }]);
-    closeModal();
+  const handleEditChange = (field, value) => {
+    setEditForm({ ...editForm, [field]: value });
   };
 
-  const deleteTodo = (id) => setTodos(todos.filter(w => w.id !== id));
-  const deleteMeeting = (id) => setMeetings(meetings.filter(m => m.id !== id));
-
-  const completeTodo = (id) => {
-    setTodos(todos.map(w => w.id === id ? { ...w, completed: true, completedAt: new Date().toISOString() } : w));
+  const handleEditSave = () => {
+    setMeetings(meetings.map(m => m.id === editingId ? editForm : m));
+    setEditingId(null);
+    alert('✅ 已更新');
   };
 
-  const renderMeetings = () => {
-    const sorted = [...meetings].sort((a, b) => {
-      if (!a.startDate) return 1;
-      if (!b.startDate) return -1;
-      return new Date(a.startDate) - new Date(b.startDate) || (a.startTime||'').localeCompare(b.startTime||'');
+  const handleEditCancel = () => {
+    setEditingId(null);
+  };
+
+  // 刪除會議
+  const handleDeleteMeeting = (id) => {
+    setMeetings(meetings.filter(m => m.id !== id));
+  };
+
+  // 複製
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ 已複製');
+  };
+
+  // 日曆相關
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getMonthDates = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const dates = [];
+    for (let i = 0; i < firstDay; i++) dates.push(null);
+    for (let i = 1; i <= daysInMonth; i++) dates.push(i);
+    return dates;
+  };
+
+  const getDateMeetings = (dateStr) => {
+    return meetings.filter(m => m.date === dateStr);
+  };
+
+  const formatDateString = (day) => {
+    return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  const isSelectedDate = (dateStr) => {
+    return dateStr === selectedDate;
+  };
+
+  // 獲取各種列表
+  const getAllMeetings = () => {
+    return meetings.sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.startTime || '00:00').localeCompare(b.startTime || '00:00');
     });
+  };
 
+  const getConferenceMeetings = () => {
+    return getAllMeetings().filter(m => m.type === 'meeting');
+  };
+
+  const getTaskMeetings = () => {
+    return getAllMeetings().filter(m => m.type === 'task');
+  };
+
+  const getSelectedDateMeetings = () => {
+    return getDateMeetings(selectedDate).sort((a, b) => {
+      return (a.startTime || '00:00').localeCompare(b.startTime || '00:00');
+    });
+  };
+
+  if (!isLoggedIn) {
     return (
-      <div className={styles.listContainer}>
-        <h2>📞 會議時程 ({sorted.length})</h2>
-        <div className={styles.quickAddForm}>
-          <button onClick={() => { setPastedText(''); setShowModal(true); setModalType('pasteModal'); }} className={styles.pasteBtn}>📋 貼郵件</button>
+      <div className={styles.loginContainer}>
+        <div className={styles.loginBox}>
+          <h1>📅 日程助理</h1>
+          <p>輸入密碼登入</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            placeholder="密碼"
+            className={styles.passwordInput}
+          />
+          {passwordError && <p className={styles.error}>{passwordError}</p>}
+          <button onClick={handleLogin} className={styles.loginBtn}>登入</button>
         </div>
-        {sorted.length === 0 ? <p className={styles.empty}>無會議</p> : sorted.map(m => (
-          <div key={m.id} className={styles.meetingCard}>
-            <div className={styles.timeBlock}>
-              {m.startTime && <div className={styles.time}>{m.startTime}</div>}
-              {m.startDate && <div className={styles.date}>{m.startDate}</div>}
-            </div>
-            <div className={styles.contentBlock}>
-              <div className={styles.title}>{m.title || '（未命名）'}</div>
-              <div className={styles.infoGrid}>
-                {m.location && <div className={styles.info}>📍 {m.location}</div>}
-                {m.chairman && <div className={styles.info}>👤 {m.chairman}</div>}
-                {m.password && <div className={styles.info}>🔐 {m.password}</div>}
-                {m.meetingNumber && <div className={styles.info}>🆔 {m.meetingNumber}</div>}
-                {m.endTime && <div className={styles.info}>⏱️ {m.endTime}</div>}
-              </div>
-              {m.link && (
-                <div className={styles.linkBlock}>
-                  <a href={m.link} target="_blank" rel="noopener noreferrer" className={styles.meetLink}>
-                    🔗 {m.link.length > 60 ? m.link.substring(0, 60) + '...' : m.link}
-                  </a>
-                </div>
-              )}
-              {m.attendees && <div className={styles.info}>{m.attendees}</div>}
-              <div className={styles.actionButtons}>
-                {m.link && <button onClick={() => window.open(m.link, '_blank')} className={styles.joinBtn}>加入</button>}
-                <button onClick={() => { setModalData(m); setModalType('meeting'); setShowModal(true); }} className={styles.editBtn}>編輯</button>
-                <button onClick={() => deleteMeeting(m.id)} className={styles.deleteBtn}>刪除</button>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     );
-  };
-
-  const renderTodos = () => {
-    const sorted = [...todos].sort((a, b) => {
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate) - new Date(b.dueDate);
-    });
-
-    const pending = sorted.filter(w => !w.completed);
-    const completed = sorted.filter(w => w.completed);
-
-    return (
-      <div className={styles.listContainer}>
-        <h2>📝 待辦事項 ({pending.length})</h2>
-        <div className={styles.quickAddForm}>
-          <input type="text" placeholder="快速輸入..." value={todoInput} onChange={e => setTodoInput(e.target.value)} onKeyPress={e => { if (e.key === 'Enter') handleQuickAddTodo(); }} className={styles.input} />
-          <button onClick={handleQuickAddTodo} className={styles.addBtn}>➕</button>
-          <button onClick={() => { setPastedText(''); setShowModal(true); setModalType('pasteTodoModal'); }} className={styles.pasteBtn}>📋</button>
-        </div>
-
-        {pending.length === 0 ? <p className={styles.empty}>無待做</p> : pending.map(w => (
-          <div key={w.id} className={styles.workCard} style={{borderLeft: '4px solid #FF9800'}}>
-            <div className={styles.workHeader}>
-              <div className={styles.title}>{w.title}</div>
-              <div className={styles.workActions}>
-                <button onClick={() => completeTodo(w.id)} className={styles.completeBtn}>✓</button>
-                <button onClick={() => { setModalData(w); setModalType('todo'); setShowModal(true); }} className={styles.editBtn}>✎</button>
-                <button onClick={() => deleteTodo(w.id)} className={styles.deleteBtn}>✕</button>
-              </div>
-            </div>
-            {w.dueDate && <div className={styles.info}>📅 截止：{w.dueDate} {w.dueTime && `${w.dueTime}`}</div>}
-            {w.contact && <div className={styles.info}>👤 {w.contact}</div>}
-            {w.phone && <div className={styles.info}>📞 {w.phone}</div>}
-            {w.description && <div className={styles.info} style={{whiteSpace: 'pre-wrap', fontSize: '0.9em', color: '#666', marginTop: '8px', padding: '8px', backgroundColor: '#f5f5f5', borderRadius: '4px'}}>{w.description}</div>}
-          </div>
-        ))}
-
-        {completed.length > 0 && (
-          <>
-            <h3 style={{marginTop: '20px', color: '#999'}}>✓ 已完成 ({completed.length})</h3>
-            {completed.map(w => (
-              <div key={w.id} className={styles.workCard} style={{opacity: 0.6, borderLeft: '4px solid #4CAF50'}}>
-                <div className={styles.workHeader}>
-                  <div className={styles.title} style={{textDecoration: 'line-through'}}>{w.title}</div>
-                  <div className={styles.workActions}>
-                    <button onClick={() => deleteTodo(w.id)} className={styles.deleteBtn}>✕</button>
-                  </div>
-                </div>
-                {w.dueDate && <div className={styles.info}>📅 {w.dueDate}</div>}
-                {w.completedAt && <div className={styles.info} style={{color: '#4CAF50'}}>✓ 完成於 {new Date(w.completedAt).toLocaleString('zh-TW')}</div>}
-                {w.description && <div className={styles.info} style={{whiteSpace: 'pre-wrap', fontSize: '0.85em', color: '#999', marginTop: '8px', padding: '8px', backgroundColor: '#f5f5f5', borderRadius: '4px'}}>{w.description}</div>}
-              </div>
-            ))}
-          </>
-        )}
-      </div>
-    );
-  };
+  }
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>💼 財務工作平台</h1>
-      </header>
-      <nav className={styles.tabs}>
-        {[['meetings','📞 會議'],['todos','📝 待辦']].map(([key, label]) => (
-          <button key={key} className={`${styles.tab} ${activeTab === key ? styles.active : ''}`} onClick={() => setActiveTab(key)}>{label}</button>
-        ))}
-      </nav>
-      <main className={styles.main}>
-        {activeTab === 'meetings' && renderMeetings()}
-        {activeTab === 'todos' && renderTodos()}
-      </main>
+      <div className={styles.header}>
+        <h1>📅 日程助理</h1>
+      </div>
 
-      {showModal && modalType === 'pasteModal' && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>📋 貼會議郵件</h2>
-            <textarea className={styles.textarea} rows="10" placeholder="貼入郵件內容..." value={pastedText} onChange={e => setPastedText(e.target.value)} />
-            <div className={styles.modalButtons}>
-              <button className={styles.primaryBtn} onClick={() => handlePasteMeeting(pastedText)}>✓ 識別</button>
-              <button className={styles.secondaryBtn} onClick={closeModal}>✕ 取消</button>
+      {/* 菜單 */}
+      <div className={styles.menuBar}>
+        <button 
+          className={`${styles.menuBtn} ${viewType === 'all' ? styles.active : ''}`}
+          onClick={() => setViewType('all')}
+        >
+          📅 全部行程
+        </button>
+        <button 
+          className={`${styles.menuBtn} ${viewType === 'meeting' ? styles.active : ''}`}
+          onClick={() => setViewType('meeting')}
+        >
+          📞 會議時程
+        </button>
+        <button 
+          className={`${styles.menuBtn} ${viewType === 'task' ? styles.active : ''}`}
+          onClick={() => setViewType('task')}
+        >
+          📝 工作列表
+        </button>
+      </div>
+
+      {/* 輸入框 */}
+      <div className={styles.inputSection}>
+        <textarea
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="貼入 Webex / Teams / 面試 / 郵件信息..."
+          className={styles.largeInput}
+        />
+        <button onClick={handleAddMeeting} className={styles.addBtn}>➕ 添加</button>
+      </div>
+
+      {/* 內容區 */}
+      <div className={styles.contentSection}>
+        {viewType === 'all' && (
+          <div className={styles.allViewContainer}>
+            <div className={styles.calendarPanel}>
+              <div className={styles.monthNav}>
+                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>⬅</button>
+                <span>{currentDate.getFullYear()}/{currentDate.getMonth() + 1}</span>
+                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>➡</button>
+              </div>
+
+              <div className={styles.calendarGrid}>
+                {['日', '一', '二', '三', '四', '五', '六'].map(day => (
+                  <div key={day} className={styles.dayHeader}>{day}</div>
+                ))}
+                {getMonthDates().map((day, idx) => {
+                  if (day === null) return <div key={`empty-${idx}`} className={styles.emptyDay}></div>;
+                  
+                  const dateStr = formatDateString(day);
+                  const dayMeetings = getDateMeetings(dateStr);
+                  const isSelected = isSelectedDate(dateStr);
+                  
+                  // 分別統計會議和工作項目
+                  const hasMeeting = dayMeetings.some(m => m.type === 'meeting');
+                  const hasTask = dayMeetings.some(m => m.type === 'task');
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                      onClick={() => setSelectedDate(dateStr)}
+                    >
+                      <div className={styles.dayNum}>{day}</div>
+                      <div className={styles.dotsContainer}>
+                        {hasMeeting && <span className={styles.dotMeeting}></span>}
+                        {hasTask && <span className={styles.dotTask}></span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.listPanel}>
+              <h2>📌 {selectedDate} ({getSelectedDateMeetings().length})</h2>
+              {getSelectedDateMeetings().length === 0 ? (
+                <p className={styles.noData}>暫無行程</p>
+              ) : (
+                <div className={styles.meetingsList}>
+                  {getSelectedDateMeetings().map(m => (
+                    <MeetingCard 
+                      key={m.id} 
+                      meeting={m}
+                      isEditing={editingId === m.id}
+                      editForm={editForm}
+                      onEditStart={handleEditStart}
+                      onEditChange={handleEditChange}
+                      onEditSave={handleEditSave}
+                      onEditCancel={handleEditCancel}
+                      onDelete={handleDeleteMeeting}
+                      onCopy={copyToClipboard}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showModal && modalType === 'pasteTodoModal' && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>📋 貼待辦郵件</h2>
-            <textarea className={styles.textarea} rows="10" placeholder="貼入郵件內容..." value={pastedText} onChange={e => setPastedText(e.target.value)} />
-            <div className={styles.modalButtons}>
-              <button className={styles.primaryBtn} onClick={() => handlePasteTodo(pastedText)}>✓ 識別</button>
-              <button className={styles.secondaryBtn} onClick={closeModal}>✕ 取消</button>
-            </div>
+        {viewType === 'meeting' && (
+          <div className={styles.listPanel}>
+            <h2>📞 會議時程 ({getConferenceMeetings().length})</h2>
+            {getConferenceMeetings().length === 0 ? (
+              <p className={styles.noData}>暫無會議</p>
+            ) : (
+              <div className={styles.meetingsList}>
+                {getConferenceMeetings().map(m => (
+                  <MeetingCard 
+                    key={m.id} 
+                    meeting={m}
+                    isEditing={editingId === m.id}
+                    editForm={editForm}
+                    onEditStart={handleEditStart}
+                    onEditChange={handleEditChange}
+                    onEditSave={handleEditSave}
+                    onEditCancel={handleEditCancel}
+                    onDelete={handleDeleteMeeting}
+                    onCopy={copyToClipboard}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {viewType === 'task' && (
+          <div className={styles.listPanel}>
+            <h2>📝 工作列表 ({getTaskMeetings().length})</h2>
+            {getTaskMeetings().length === 0 ? (
+              <p className={styles.noData}>暫無工作項目</p>
+            ) : (
+              <div className={styles.meetingsList}>
+                {getTaskMeetings().map(m => (
+                  <MeetingCard 
+                    key={m.id} 
+                    meeting={m}
+                    isEditing={editingId === m.id}
+                    editForm={editForm}
+                    onEditStart={handleEditStart}
+                    onEditChange={handleEditChange}
+                    onEditSave={handleEditSave}
+                    onEditCancel={handleEditCancel}
+                    onDelete={handleDeleteMeeting}
+                    onCopy={copyToClipboard}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 編輯模態框 */}
+      {editingId && <EditModal meeting={editForm} onChange={handleEditChange} onSave={handleEditSave} onCancel={handleEditCancel} />}
+    </div>
+  );
+}
+
+// 會議卡片
+function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, onEditSave, onEditCancel, onDelete, onCopy }) {
+  const styles = require('../styles/Home.module.css');
+  
+  if (isEditing) {
+    return (
+      <div className={styles.meetingCard}>
+        <div className={styles.editForm}>
+          <input 
+            type="text" 
+            value={editForm.title} 
+            onChange={(e) => onEditChange('title', e.target.value)}
+            placeholder="標題"
+            className={styles.editInput}
+          />
+          <select 
+            value={editForm.type} 
+            onChange={(e) => onEditChange('type', e.target.value)}
+            className={styles.editSelect}
+          >
+            <option value="meeting">會議</option>
+            <option value="task">工作項目</option>
+          </select>
+          <input 
+            type="text" 
+            value={editForm.startTime} 
+            onChange={(e) => onEditChange('startTime', e.target.value)}
+            placeholder="時間 (HH:MM)"
+            className={styles.editInput}
+          />
+          <input 
+            type="text" 
+            value={editForm.password} 
+            onChange={(e) => onEditChange('password', e.target.value)}
+            placeholder="會議密碼"
+            className={styles.editInput}
+          />
+          <input 
+            type="text" 
+            value={editForm.hostPassword} 
+            onChange={(e) => onEditChange('hostPassword', e.target.value)}
+            placeholder="主持人密碼"
+            className={styles.editInput}
+          />
+          <div className={styles.editActions}>
+            <button onClick={onEditSave} className={styles.saveBtn}>💾 保存</button>
+            <button onClick={onEditCancel} className={styles.cancelBtn}>✕ 取消</button>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {showModal && modalType === 'todo' && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <TodoForm todo={modalData} onSave={saveTodo} onClose={closeModal} />
-          </div>
-        </div>
-      )}
+  return (
+    <div className={`${styles.meetingCard} ${styles[meeting.type]}`}>
+      <div className={styles.cardHeader}>
+        <div className={styles.cardTime}>{meeting.startTime || '--:--'}</div>
+        <div className={styles.cardTitle}>{meeting.title}</div>
+      </div>
 
-      {showModal && modalType === 'meeting' && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <MeetingForm meeting={modalData} onSave={saveMeeting} onClose={closeModal} />
-          </div>
+      <div className={styles.cardInfo}>
+        {meeting.subject && <div className={styles.detail}>📌 {meeting.subject}</div>}
+        {meeting.date && <div className={styles.detail}>📅 {meeting.date}</div>}
+        {meeting.duration && <div className={styles.detail}>⏱️ {meeting.duration}</div>}
+        {meeting.platform && <div className={styles.badge}>{meeting.platform}</div>}
+        {meeting.location && <div className={styles.detail}>📍 {meeting.location}</div>}
+        {meeting.organizer && <div className={styles.detail}>👤 {meeting.organizer}</div>}
+        {meeting.phone && <div className={styles.detail}>☎️ {meeting.phone}</div>}
+        {meeting.link && <div className={styles.detail}>🔗 <a href={meeting.link} target="_blank" rel="noopener noreferrer">會議鏈接</a></div>}
+        {meeting.password && <div className={styles.detail}>🔑 {meeting.password}</div>}
+        {meeting.hostPassword && <div className={styles.detail}>🔐 主持人密碼: {meeting.hostPassword}</div>}
+      </div>
+
+      <div className={styles.actions}>
+        {meeting.link && <button onClick={() => window.open(meeting.link, '_blank')} className={styles.actionBtn}>🔗 加入</button>}
+        {meeting.password && <button onClick={() => onCopy(meeting.password)} className={styles.actionBtn}>📋 複製</button>}
+        <button onClick={() => onEditStart(meeting)} className={styles.actionBtn}>✏️ 編輯</button>
+        <button onClick={() => onDelete(meeting.id)} className={`${styles.actionBtn} ${styles.delete}`}>🗑 刪除</button>
+      </div>
+    </div>
+  );
+}
+
+// 編輯模態框
+function EditModal({ meeting, onChange, onSave, onCancel }) {
+  const styles = require('../styles/Home.module.css');
+  
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <h2>編輯會議</h2>
+        <div className={styles.modalForm}>
+          <label>標題</label>
+          <input 
+            type="text" 
+            value={meeting.title} 
+            onChange={(e) => onChange('title', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>類型</label>
+          <select 
+            value={meeting.type} 
+            onChange={(e) => onChange('type', e.target.value)}
+            className={styles.formSelect}
+          >
+            <option value="meeting">會議</option>
+            <option value="task">工作項目</option>
+          </select>
+          
+          <label>主題</label>
+          <input 
+            type="text" 
+            value={meeting.subject} 
+            onChange={(e) => onChange('subject', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>時間</label>
+          <input 
+            type="text" 
+            value={meeting.startTime} 
+            onChange={(e) => onChange('startTime', e.target.value)}
+            placeholder="HH:MM"
+            className={styles.formInput}
+          />
+          
+          <label>日期</label>
+          <input 
+            type="text" 
+            value={meeting.date} 
+            onChange={(e) => onChange('date', e.target.value)}
+            placeholder="YYYY-MM-DD"
+            className={styles.formInput}
+          />
+          
+          <label>時長</label>
+          <input 
+            type="text" 
+            value={meeting.duration} 
+            onChange={(e) => onChange('duration', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>平台</label>
+          <input 
+            type="text" 
+            value={meeting.platform} 
+            onChange={(e) => onChange('platform', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>會議鏈接</label>
+          <input 
+            type="text" 
+            value={meeting.link} 
+            onChange={(e) => onChange('link', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>會議密碼</label>
+          <input 
+            type="text" 
+            value={meeting.password} 
+            onChange={(e) => onChange('password', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>主持人密碼</label>
+          <input 
+            type="text" 
+            value={meeting.hostPassword} 
+            onChange={(e) => onChange('hostPassword', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>主持人</label>
+          <input 
+            type="text" 
+            value={meeting.organizer} 
+            onChange={(e) => onChange('organizer', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>地點</label>
+          <input 
+            type="text" 
+            value={meeting.location} 
+            onChange={(e) => onChange('location', e.target.value)}
+            className={styles.formInput}
+          />
+          
+          <label>電話</label>
+          <input 
+            type="text" 
+            value={meeting.phone} 
+            onChange={(e) => onChange('phone', e.target.value)}
+            className={styles.formInput}
+          />
         </div>
-      )}
+        
+        <div className={styles.modalActions}>
+          <button onClick={onSave} className={styles.modalSaveBtn}>💾 保存</button>
+          <button onClick={onCancel} className={styles.modalCancelBtn}>✕ 取消</button>
+        </div>
+      </div>
     </div>
   );
 }
