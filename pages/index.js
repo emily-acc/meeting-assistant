@@ -14,8 +14,6 @@ export default function Home() {
   
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
-  
-  const [alert, setAlert] = useState(null);
 
   // 登入
   const handleLogin = () => {
@@ -23,10 +21,6 @@ export default function Home() {
       setIsLoggedIn(true);
       setPasswordError('');
       localStorage.setItem('loggedIn', 'true');
-      // 請求通知權限
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
     } else {
       setPasswordError('密碼錯誤');
     }
@@ -46,113 +40,6 @@ export default function Home() {
     localStorage.setItem('meetings', JSON.stringify(meetings));
   }, [meetings]);
 
-  // 通知檢查（每分鐘檢查一次）
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    const checkNotifications = () => {
-      const now = new Date();
-      const currentDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
-      meetings.forEach(meeting => {
-        if (!meeting.notifications) return;
-        
-        meeting.notifications.forEach((notif, idx) => {
-          if (!notif.enabled) return;
-          
-          const meetingDateTime = `${meeting.date} ${meeting.startTime || '00:00'}`;
-          const notificationTime = calculateNotificationTime(meetingDateTime, notif.minutesBefore);
-          
-          // 檢查是否該觸發通知（誤差 1 分鐘內）
-          if (isTimeWithinRange(currentDateTime, notificationTime, 1)) {
-            // 防止重複通知
-            if (!meeting.notified) {
-              triggerNotification(meeting, notif);
-              // 標記為已通知
-              const updatedMeetings = meetings.map(m => 
-                m.id === meeting.id ? { ...m, notified: true } : m
-              );
-              setMeetings(updatedMeetings);
-            }
-          }
-        });
-      });
-    };
-
-    const interval = setInterval(checkNotifications, 60000); // 每分鐘檢查一次
-    checkNotifications(); // 初始檢查
-
-    return () => clearInterval(interval);
-  }, [meetings, isLoggedIn]);
-
-  // 計算通知時間
-  const calculateNotificationTime = (meetingDateTime, minutesBefore) => {
-    const [datePart, timePart] = meetingDateTime.split(' ');
-    const [year, month, day] = datePart.split('-');
-    const [hours, mins] = timePart.split(':');
-    
-    let date = new Date(year, month - 1, day, hours, mins, 0);
-    date.setMinutes(date.getMinutes() - minutesBefore);
-    
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
-
-  // 檢查時間範圍
-  const isTimeWithinRange = (currentTime, targetTime, minuteRange) => {
-    const current = new Date(currentTime.replace(' ', 'T'));
-    const target = new Date(targetTime.replace(' ', 'T'));
-    const diff = Math.abs(current - target) / 60000; // 轉換為分鐘
-    return diff <= minuteRange;
-  };
-
-  // 觸發通知
-  const triggerNotification = (meeting, notif) => {
-    // 1️⃣ 浏览器通知
-    if (Notification.permission === 'granted') {
-      new Notification(`📅 ${meeting.title}`, {
-        body: `即將開始${notif.minutesBefore ? `（${notif.minutesBefore}分鐘後）` : ''}`,
-        icon: '📞',
-        badge: '📅'
-      });
-    }
-
-    // 2️⃣ 應用內彈窗
-    setAlert({
-      title: `🔔 ${meeting.title}`,
-      message: `時間：${meeting.date} ${meeting.startTime}\n${notif.minutesBefore ? `提醒：${notif.minutesBefore}分鐘後即將開始` : '即將開始'}`,
-      type: meeting.type === 'meeting' ? 'meeting' : 'task'
-    });
-
-    // 3️⃣ 聲音提醒
-    if (notif.sound) {
-      playNotificationSound();
-    }
-  };
-
-  // 播放聲音
-  const playNotificationSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // 播放連續的警報音
-      oscillator.frequency.value = 800; // 頻率
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 1);
-    } catch (e) {
-      console.log('聲音播放失敗');
-    }
-  };
-
   // 識別會議/工作項目
   const parseMeetingText = (text) => {
     const meeting = {
@@ -171,10 +58,6 @@ export default function Home() {
       phone: '',
       duration: '',
       type: 'meeting',
-      notifications: [
-        { minutesBefore: 15, enabled: true, sound: true }
-      ],
-      notified: false,
       notes: text
     };
 
@@ -188,7 +71,7 @@ export default function Home() {
       meeting.type = 'meeting';
     }
 
-    // 提取主題
+    // 提取主題（優先級最高）
     const subjectMatch = text.match(/主題[：:]\s*(.+?)[\n$]|主题[：:]\s*(.+?)[\n$]/);
     if (subjectMatch) {
       meeting.subject = subjectMatch[1] || subjectMatch[2];
@@ -216,7 +99,7 @@ export default function Home() {
       }
     }
 
-    // 提取人名
+    // 提取人名（面試對象或主持人）
     const nameMatch = text.match(/([林王陳李張劉黃吳周郭何高施曾彭趙]\w{1,2})/);
     if (nameMatch && isInterview && !meeting.title.includes(nameMatch[1])) {
       meeting.organizer = nameMatch[1];
@@ -228,7 +111,7 @@ export default function Home() {
       meeting.location = locationMatch[1] ? locationMatch[1] + (locationMatch[2] || '') : (locationMatch[2] || '永寧廠');
     }
 
-    // 提取時間
+    // 提取時間（支持多種格式）
     const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
     if (timeMatch) {
       meeting.startTime = `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}`;
@@ -240,7 +123,7 @@ export default function Home() {
       meeting.duration = durationMatch[1] || durationMatch[2];
     }
 
-    // 提取日期
+    // 提取日期（支持多種格式）
     const dateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{1,2})[\/年](\d{1,2})/);
     if (dateMatch) {
       if (dateMatch[1]) {
@@ -285,13 +168,13 @@ export default function Home() {
     const linkMatch = text.match(/(https?:\/\/[^\s\n]+)/);
     if (linkMatch) meeting.link = linkMatch[1];
 
-    // 提取會議號碼
+    // 提取會議號碼/號码
     const numberMatch = text.match(/號碼[：:]\s*(\d+)|号码[：:]\s*(\d+)/);
     if (numberMatch) {
       meeting.password = numberMatch[1] || numberMatch[2];
     }
 
-    // 提取組織者
+    // 提取組織者/主持人（包含部門和電話）
     const orgMatch = text.match(/主持人[：:]\s*([^\n]+)|主席[：:]\s*([^\n]+)|寄件人[：:]\s*([^\n]+)|([A-Za-z\s\.]+\s[\u4e00-\u9fff]{2,4})/);
     if (orgMatch) {
       meeting.organizer = orgMatch[1] || orgMatch[2] || orgMatch[3] || orgMatch[4];
@@ -329,6 +212,7 @@ export default function Home() {
     } else if (viewType === 'task') {
       meeting.type = 'task';
     } else {
+      // all 模式下預設為 meeting
       meeting.type = 'meeting';
     }
 
@@ -503,6 +387,7 @@ export default function Home() {
                   const dayMeetings = getDateMeetings(dateStr);
                   const isSelected = isSelectedDate(dateStr);
                   
+                  // 分別統計會議和工作項目
                   const hasMeeting = dayMeetings.some(m => m.type === 'meeting');
                   const hasTask = dayMeetings.some(m => m.type === 'task');
                   
@@ -604,9 +489,6 @@ export default function Home() {
 
       {/* 編輯模態框 */}
       {editingId && <EditModal meeting={editForm} onChange={handleEditChange} onSave={handleEditSave} onCancel={handleEditCancel} />}
-
-      {/* 通知彈窗 */}
-      {alert && <AlertModal alert={alert} onClose={() => setAlert(null)} />}
     </div>
   );
 }
@@ -682,9 +564,6 @@ function MeetingCard({ meeting, isEditing, editForm, onEditStart, onEditChange, 
         {meeting.link && <div className={styles.detail}>🔗 <a href={meeting.link} target="_blank" rel="noopener noreferrer">會議鏈接</a></div>}
         {meeting.password && <div className={styles.detail}>🔑 {meeting.password}</div>}
         {meeting.hostPassword && <div className={styles.detail}>🔐 主持人密碼: {meeting.hostPassword}</div>}
-        {meeting.notifications && meeting.notifications.length > 0 && (
-          <div className={styles.detail}>🔔 提醒設置：{meeting.notifications.map(n => `提前${n.minutesBefore}分鐘`).join(', ')}</div>
-        )}
       </div>
 
       <div className={styles.actions}>
@@ -813,62 +692,12 @@ function EditModal({ meeting, onChange, onSave, onCancel }) {
             onChange={(e) => onChange('phone', e.target.value)}
             className={styles.formInput}
           />
-          
-          <label>🔔 提醒設置</label>
-          <div className={styles.notificationSettings}>
-            <label className={styles.checkboxLabel}>
-              <input 
-                type="checkbox" 
-                checked={meeting.notifications?.[0]?.enabled || false}
-                onChange={(e) => {
-                  const notifs = [...(meeting.notifications || [])];
-                  if (!notifs[0]) notifs[0] = { minutesBefore: 15, enabled: true, sound: true };
-                  notifs[0].enabled = e.target.checked;
-                  onChange('notifications', notifs);
-                }}
-              />
-              提前 15 分鐘提醒
-            </label>
-            <label className={styles.checkboxLabel}>
-              <input 
-                type="checkbox"
-                checked={meeting.notifications?.[0]?.sound || false}
-                onChange={(e) => {
-                  const notifs = [...(meeting.notifications || [])];
-                  if (!notifs[0]) notifs[0] = { minutesBefore: 15, enabled: true, sound: true };
-                  notifs[0].sound = e.target.checked;
-                  onChange('notifications', notifs);
-                }}
-              />
-              開啟聲音提醒
-            </label>
-          </div>
         </div>
         
         <div className={styles.modalActions}>
           <button onClick={onSave} className={styles.modalSaveBtn}>💾 保存</button>
           <button onClick={onCancel} className={styles.modalCancelBtn}>✕ 取消</button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// 通知彈窗
-function AlertModal({ alert, onClose }) {
-  const styles = require('../styles/Home.module.css');
-  
-  useEffect(() => {
-    const timer = setTimeout(onClose, 6000); // 6秒後自動關閉
-    return () => clearTimeout(timer);
-  }, [onClose]);
-  
-  return (
-    <div className={styles.alertOverlay}>
-      <div className={`${styles.alertBox} ${styles[`alert-${alert.type}`]}`}>
-        <div className={styles.alertTitle}>{alert.title}</div>
-        <div className={styles.alertMessage}>{alert.message}</div>
-        <button onClick={onClose} className={styles.alertClose}>✕</button>
       </div>
     </div>
   );
