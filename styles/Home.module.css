@@ -1,476 +1,228 @@
-/* styles/Home.module.css */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
 
-* {
+/* 登入 */
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+.loginBox {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+}
+
+.loginBox h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  color: #1a1a1a;
+}
+
+.loginBox p {
+  color: #666;
+  margin: 0 0 20px 0;
+  font-size: 14px;
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
   box-sizing: border-box;
 }
 
-.container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  display: flex;
-  flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans', sans-serif;
+.passwordInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
 }
 
-.header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.error {
+  color: #e74c3c;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.loginBtn {
+  width: 100%;
+  padding: 12px;
+  background: #2c3e50;
   color: white;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.loginBtn:hover {
+  background: #1a2a38;
+}
+
+/* 頭部 */
+.header {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .header h1 {
   margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 24px;
+  color: #1a1a1a;
 }
 
-.tabs {
+/* 菜單 */
+.menuBar {
   display: flex;
+  gap: 8px;
   background: white;
-  border-bottom: 2px solid #e0e0e0;
-  overflow-x: auto;
-  gap: 0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.tab {
+.menuBtn {
   flex: 1;
-  min-width: 100px;
-  padding: 14px 16px;
-  border: none;
-  background: white;
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 10px 16px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
 }
 
-.tab:hover {
-  background: #f5f5f5;
-  color: #333;
+.menuBtn:hover {
+  background: #e8e8e8;
 }
 
-.tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background: #f9f9f9;
+.menuBtn.active {
+  background: #2c3e50;
+  color: white;
+  border-color: #2c3e50;
 }
 
-.main {
-  flex: 1;
-  padding: 16px;
-  overflow-y: auto;
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* 列表容器 */
-.listContainer {
+/* 輸入框 */
+.inputSection {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.listContainer h2 {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  color: #333;
-  font-weight: 600;
-}
-
-/* 快速輸入表單 */
-.quickAddForm {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
-.input {
+.largeInput {
   flex: 1;
-  padding: 12px 14px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
   font-family: inherit;
-  transition: all 0.3s ease;
+  min-height: 45px;
+  resize: vertical;
 }
 
-.input:focus {
+.largeInput:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.input::placeholder {
-  color: #999;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
 }
 
 .addBtn {
-  padding: 12px 16px;
-  background: #4CAF50;
+  padding: 10px 14px;
+  background: #2c3e50;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 600;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  min-width: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  white-space: nowrap;
+  align-self: flex-end;
+  transition: all 0.2s;
 }
 
 .addBtn:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  background: #1a2a38;
 }
 
-.addBtn:active {
-  transform: translateY(0);
-}
-
-.addBtn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.pasteBtn {
-  padding: 12px 16px;
-  background: #2196F3;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  min-width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pasteBtn:hover {
-  background: #0b7dda;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
-}
-
-.pasteBtn:active {
-  transform: translateY(0);
-}
-
-.pasteBtn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-/* 會議卡片 */
-.meetingCard {
+/* 內容區 */
+.contentSection {
   background: white;
-  border-left: 4px solid #2196F3;
   border-radius: 8px;
-  padding: 0;
-  margin-bottom: 16px;
-  display: flex;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 12px;
+  min-height: 500px;
 }
 
-.meetingCard:hover {
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
-  border-left-color: #1976D2;
-}
-
-.timeBlock {
-  background: #f5f5f5;
-  padding: 16px;
-  min-width: 90px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid #e0e0e0;
-  gap: 4px;
-}
-
-.time {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
-  text-align: center;
-}
-
-.date {
-  font-size: 11px;
-  color: #999;
-  text-align: center;
-}
-
-.contentBlock {
-  flex: 1;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-.infoGrid {
+/* 全部行程 */
+.allViewContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.info {
-  font-size: 13px;
-  color: #666;
-  line-height: 1.4;
-}
-
-.linkBlock {
-  background: #e3f2fd;
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin: 6px 0;
-}
-
-.meetLink {
-  color: #2196F3;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 500;
-  word-break: break-all;
-  display: block;
-}
-
-.meetLink:hover {
-  text-decoration: underline;
-}
-
-.actionButtons {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.joinBtn {
-  padding: 8px 14px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-width: 70px;
-}
-
-.joinBtn:hover {
-  background: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-}
-
-.editBtn {
-  padding: 8px 14px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-width: 70px;
-}
-
-.editBtn:hover {
-  background: #5568d3;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
-}
-
-.deleteBtn {
-  padding: 8px 14px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-width: 70px;
-}
-
-.deleteBtn:hover {
-  background: #d32f2f;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
-}
-
-.completeBtn {
-  padding: 8px 14px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-width: 70px;
-}
-
-.completeBtn:hover {
-  background: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-}
-
-/* 待辦卡片 */
-.workCard {
-  background: white;
-  border-left: 4px solid #FF9800;
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-.workCard:hover {
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
-  border-left-color: #F57C00;
-}
-
-.workHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 8px;
+  min-height: 600px;
 }
 
-.workActions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-/* 例行卡片 */
-.recurringCard {
-  background: white;
-  border-left: 4px solid #9C27B0;
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-.recurringCard:hover {
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.2);
-  border-left-color: #7B1FA2;
-}
-
-.empty {
-  text-align: center;
-  color: #999;
-  padding: 40px 20px;
-  font-size: 14px;
-}
-
-/* 日曆 */
-.scheduleContainer {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.calendarSection {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  height: fit-content;
-}
-
-.listSection {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.calendarPanel {
+  border-right: 1px solid #eee;
+  padding-right: 12px;
   overflow-y: auto;
   max-height: 600px;
 }
 
-.listSection h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  color: #333;
-  font-weight: 600;
-}
-
-.calendar {
-  background: white;
-}
-
-.calendarHeader {
+.monthNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
 
-.calendarHeader button {
-  padding: 8px 12px;
-  background: #667eea;
-  color: white;
-  border: none;
+.monthNav button {
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.calendarHeader button:hover {
-  background: #5568d3;
-}
-
-.calendarHeader span {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 12px;
   color: #333;
-  min-width: 120px;
-  text-align: center;
+  transition: all 0.2s;
+}
+
+.monthNav button:hover {
+  background: #e0e0e0;
+}
+
+.monthNav span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .calendarGrid {
@@ -479,83 +231,293 @@
   gap: 4px;
 }
 
-.weekday {
+.dayHeader {
   text-align: center;
   font-weight: 600;
-  color: #667eea;
-  padding: 8px 0;
-  font-size: 12px;
+  color: #2c3e50;
+  padding: 6px 0;
+  font-size: 11px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.emptyDay {
+  aspect-ratio: 1;
+  background: transparent;
 }
 
 .calendarDay {
   aspect-ratio: 1;
+  padding: 4px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  background: white;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  color: #666;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.calendarDay.hasDay {
-  color: #333;
-}
-
-.calendarDay.hasEvent {
-  background: #667eea;
-  color: white;
-  font-weight: 600;
-  border-color: #667eea;
+  transition: all 0.2s;
+  font-size: 12px;
+  position: relative;
 }
 
 .calendarDay:hover {
-  border-color: #667eea;
-}
-
-/* 全部行程小卡片 */
-.smallItemCard {
+  border-color: #2c3e50;
   background: #f9f9f9;
-  border-left: 3px solid #667eea;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  transition: all 0.2s ease;
 }
 
-.smallItemCard:hover {
-  background: #f5f5f5;
-}
-
-.smallTime {
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 2px;
-}
-
-.smallTitle {
+.calendarDay.selected {
+  background: #fff3cd;
+  border-color: #f39c12;
   font-weight: 600;
-  color: #333;
+  box-shadow: 0 2px 6px rgba(243, 156, 18, 0.3);
+}
+
+.dayNum {
+  font-size: 11px;
+  font-weight: 500;
+  color: #1a1a1a;
   margin-bottom: 2px;
 }
 
-.smallMeta {
-  color: #999;
-  font-size: 11px;
+.dotsContainer {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  min-height: 8px;
 }
 
-.smallLink {
-  color: #2196F3;
+.dotMeeting {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #0066cc;
+  border-radius: 50%;
+  margin: 0 1px;
+}
+
+.dotTask {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #27ae60;
+  border-radius: 50%;
+  margin: 0 1px;
+}
+
+.listPanel {
+  padding-left: 12px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.listPanel h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1a1a1a;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.noData {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 13px;
+}
+
+.meetingsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meetingCard {
+  border-left: 3px solid #2c3e50;
+  border: 1px solid #e8e8e8;
+  border-left: 3px solid #2c3e50;
+  border-radius: 6px;
+  padding: 10px;
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+
+.meetingCard.meeting {
+  border-left-color: #0066cc;
+}
+
+.meetingCard.task {
+  border-left-color: #27ae60;
+}
+
+.meetingCard:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-color: #2c3e50;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+}
+
+.cardTime {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 12px;
+  min-width: 50px;
+}
+
+.cardTitle {
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 13px;
+  flex: 1;
+}
+
+.cardInfo {
+  margin: 6px 0;
+}
+
+.detail {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 2px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.detail a {
+  color: #0066cc;
   text-decoration: none;
-  margin-left: 4px;
+}
+
+.detail a:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  background: #e8f4f8;
+  color: #0c5460;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #333;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 50px;
+  text-align: center;
+}
+
+.actionBtn:hover {
+  background: #f0f0f0;
+}
+
+.delete {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.delete:hover {
+  background: #ffe5e5;
+}
+
+/* 編輯表單（卡片內） */
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editInput {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+}
+
+.editSelect {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.editSelect:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.saveBtn {
+  padding: 6px 10px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex: 1;
+}
+
+.saveBtn:hover {
+  background: #229954;
+}
+
+.cancelBtn {
+  padding: 6px 10px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex: 1;
+}
+
+.cancelBtn:hover {
+  background: #c0392b;
 }
 
 /* 模態框 */
-.modal {
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -563,542 +525,178 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: flex-end;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
-  padding: 16px;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .modalContent {
   background: white;
-  border-radius: 12px 12px 0 0;
-  padding: 24px 20px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
 }
 
 .modalContent h2 {
   margin: 0 0 16px 0;
-  font-size: 20px;
-  color: #333;
-  font-weight: 600;
-}
-
-.modalContent h3 {
-  margin: 0 0 16px 0;
   font-size: 18px;
-  color: #333;
-  font-weight: 600;
+  color: #1a1a1a;
 }
 
-.modalButtons {
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modalForm label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.formInput {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.formSelect {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.modalActions {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-  flex-wrap: wrap;
 }
 
-.primaryBtn {
-  padding: 12px 24px;
-  background: #667eea;
+.modalSaveBtn {
+  flex: 1;
+  padding: 10px;
+  background: #27ae60;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 100px;
-}
-
-.primaryBtn:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-}
-
-.primaryBtn:active {
-  transform: translateY(0);
-}
-
-.primaryBtn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.secondaryBtn {
-  padding: 12px 24px;
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 100px;
-}
-
-.secondaryBtn:hover {
-  background: #e0e0e0;
-}
-
-/* 表單 */
-.form {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.form label {
-  display: block;
-  margin: 16px 0 6px 0;
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
-}
-
-.form input,
-.form select,
-.form textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.3s ease;
-}
-
-.form input:focus,
-.form select:focus,
-.form textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 1.2em;
-  padding-right: 36px;
-}
-
-.formButtons {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 24px;
-  flex-wrap: wrap;
-}
-
-.textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-family: monospace;
   font-size: 13px;
-  resize: vertical;
-  transition: all 0.3s ease;
+  font-weight: 600;
 }
 
-.textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.modalSaveBtn:hover {
+  background: #229954;
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 24px;
-  }
+.modalCancelBtn {
+  flex: 1;
+  padding: 10px;
+  background: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
 
-  .tab {
-    min-width: 80px;
-    padding: 12px 12px;
-    font-size: 12px;
-  }
+.modalCancelBtn:hover {
+  background: #7f8c8d;
+}
 
-  .main {
-    padding: 12px;
-  }
-
-  .listContainer {
-    padding: 16px;
-  }
-
-  .listContainer h2 {
-    font-size: 18px;
-  }
-
-  .scheduleContainer {
+/* 響應式 */
+@media (max-width: 1024px) {
+  .allViewContainer {
     grid-template-columns: 1fr;
   }
 
-  .listSection {
-    max-height: 500px;
-  }
-
-  .quickAddForm {
-    gap: 8px;
-  }
-
-  .input {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  .addBtn,
-  .pasteBtn {
-    padding: 10px 12px;
-    min-width: 44px;
-  }
-
-  .meetingCard {
-    flex-direction: column;
-  }
-
-  .timeBlock {
+  .calendarPanel {
     border-right: none;
-    border-bottom: 1px solid #e0e0e0;
-    min-width: auto;
-    padding: 10px;
-  }
-
-  .contentBlock {
-    padding: 12px;
-    gap: 6px;
-  }
-
-  .infoGrid {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  .actionButtons {
-    gap: 6px;
-  }
-
-  .joinBtn,
-  .editBtn,
-  .deleteBtn,
-  .completeBtn {
-    padding: 7px 10px;
-    font-size: 12px;
-    min-width: 60px;
-  }
-
-  .title {
-    font-size: 15px;
-  }
-
-  .info {
-    font-size: 12px;
-  }
-
-  .modalContent {
-    border-radius: 16px 16px 0 0;
-    padding: 20px 16px;
-  }
-
-  .form label {
-    margin: 14px 0 6px 0;
-    font-size: 13px;
-  }
-
-  .form input,
-  .form select,
-  .form textarea {
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-
-  .primaryBtn,
-  .secondaryBtn {
-    padding: 10px 20px;
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header h1 {
-    font-size: 20px;
-    margin: 0;
-  }
-
-  .header {
-    padding: 16px 12px;
-  }
-
-  .tabs {
-    gap: 0;
-  }
-
-  .tab {
-    min-width: 70px;
-    padding: 10px 8px;
-    font-size: 11px;
-  }
-
-  .main {
-    padding: 8px;
-  }
-
-  .listContainer {
-    padding: 12px;
-  }
-
-  .listContainer h2 {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-
-  .quickAddForm {
-    flex-direction: row;
-    gap: 6px;
-  }
-
-  .input {
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  .addBtn,
-  .pasteBtn {
-    padding: 10px;
-    min-width: 40px;
-    font-size: 14px;
-  }
-
-  .meetingCard {
-    margin-bottom: 12px;
-    flex-direction: column;
-  }
-
-  .timeBlock {
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
-    min-width: auto;
-    padding: 8px;
-  }
-
-  .time {
-    font-size: 16px;
-  }
-
-  .date {
-    font-size: 10px;
-  }
-
-  .contentBlock {
-    padding: 10px;
-    gap: 4px;
-  }
-
-  .title {
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .info {
-    font-size: 11px;
-  }
-
-  .infoGrid {
-    grid-template-columns: 1fr;
-    gap: 3px;
-  }
-
-  .actionButtons {
-    gap: 4px;
-  }
-
-  .joinBtn,
-  .editBtn,
-  .deleteBtn,
-  .completeBtn {
-    padding: 6px 8px;
-    font-size: 11px;
-    min-width: 50px;
-  }
-
-  .workCard {
-    padding: 10px;
-    margin-bottom: 8px;
-  }
-
-  .workHeader {
-    gap: 8px;
-  }
-
-  .workActions {
-    gap: 4px;
-  }
-
-  .recurringCard {
-    padding: 10px;
-    margin-bottom: 8px;
-  }
-
-  .modalContent {
-    max-height: 95vh;
-    padding: 16px 12px;
-  }
-
-  .modalContent h2,
-  .modalContent h3 {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-
-  .form label {
-    margin: 12px 0 4px 0;
-    font-size: 12px;
-  }
-
-  .form input,
-  .form select,
-  .form textarea {
-    padding: 8px;
-    margin-bottom: 8px;
-    font-size: 12px;
-  }
-
-  .primaryBtn,
-  .secondaryBtn {
-    padding: 10px 16px;
-    font-size: 12px;
-    min-width: 80px;
-  }
-
-  .modalButtons {
-    gap: 8px;
-  }
-
-  .calendarHeader span {
-    font-size: 14px;
-  }
-
-  .calendarDay {
-    font-size: 11px;
-  }
-
-  .weekday {
-    font-size: 11px;
-    padding: 6px 0;
-  }
-
-  .scheduleContainer {
-    gap: 12px;
-  }
-
-  .calendarSection {
-    padding: 12px;
-  }
-
-  .listSection {
-    padding: 12px;
+    border-bottom: 1px solid #eee;
+    padding-right: 0;
+    padding-bottom: 12px;
     max-height: 400px;
   }
 
-  .listSection h3 {
-    font-size: 16px;
-    margin-bottom: 12px;
+  .listPanel {
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 8px;
   }
 
-  .smallItemCard {
-    padding: 8px 10px;
-    margin-bottom: 6px;
-    font-size: 12px;
+  .inputSection {
+    flex-direction: column;
   }
 
-  .smallTime {
-    font-size: 12px;
+  .addBtn {
+    align-self: stretch;
   }
 
-  .smallTitle {
-    font-size: 13px;
+  .contentSection {
+    min-height: auto;
+    padding: 8px;
   }
 
-  .smallMeta {
+  .allViewContainer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .calendarPanel {
+    max-height: none;
+    padding-right: 0;
+    padding-bottom: 12px;
+  }
+
+  .listPanel {
+    max-height: none;
+    padding-left: 0;
+    padding-top: 12px;
+  }
+
+  .calendarDay {
+    font-size: 10px;
+    min-height: 35px;
+  }
+
+  .dayNum {
     font-size: 10px;
   }
-}
 
-/* 滾動條樣式 */
-.main::-webkit-scrollbar,
-.listSection::-webkit-scrollbar,
-.modalContent::-webkit-scrollbar,
-.form::-webkit-scrollbar {
-  width: 8px;
-}
-
-.main::-webkit-scrollbar-track,
-.listSection::-webkit-scrollbar-track,
-.modalContent::-webkit-scrollbar-track,
-.form::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.main::-webkit-scrollbar-thumb,
-.listSection::-webkit-scrollbar-thumb,
-.modalContent::-webkit-scrollbar-thumb,
-.form::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.main::-webkit-scrollbar-thumb:hover,
-.listSection::-webkit-scrollbar-thumb:hover,
-.modalContent::-webkit-scrollbar-thumb:hover,
-.form::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* 動畫 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  .monthNav span {
+    font-size: 12px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-.meetingCard,
-.workCard,
-.recurringCard {
-  animation: fadeIn 0.3s ease;
+  .modalContent {
+    max-width: 95%;
+  }
 }
